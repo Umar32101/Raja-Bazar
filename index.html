@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raja Bazar — PUBG Gaming Marketplace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;600;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, serverTimestamp }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // ⚠️ Replace with your own Firebase config
+  const firebaseConfig = {
+    apiKey: "REPLACE_WITH_YOUR_API_KEY",
+    authDomain: "REPLACE_WITH_YOUR_AUTH_DOMAIN",
+    projectId: "REPLACE_WITH_YOUR_PROJECT_ID",
+    storageBucket: "REPLACE_WITH_YOUR_STORAGE_BUCKET",
+    messagingSenderId: "REPLACE_WITH_YOUR_SENDER_ID",
+    appId: "REPLACE_WITH_YOUR_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const provider = new GoogleAuthProvider();
+
+  // Admin WhatsApp number (replace with real number)
+  const ADMIN_WHATSAPP = "923001234567";
+
+  window._rb = { auth, db, provider, signInWithPopup, signOut, onAuthStateChanged,
+    collection, addDoc, getDocs, deleteDoc, doc, query, orderBy, serverTimestamp,
+    ADMIN_WHATSAPP };
+</script>
+
+<style>
+:root {
+  --bg:        #080c10;
+  --surface:   #0d1117;
+  --card:      #111820;
+  --border:    #1e2d3d;
+  --accent:    #00e5ff;
+  --gold:      #ffd700;
+  --danger:    #ff4444;
+  --sell:      #00ff88;
+  --need:      #ff7b00;
+  --text:      #e0e8f0;
+  --muted:     #5a7080;
+  --font-head: 'Rajdhani', sans-serif;
+  --font-body: 'Exo 2', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+
+/* ─── BACKGROUND GRID ─── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,229,255,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none; z-index: 0;
+}
+
+/* ─── NAV ─── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(8,12,16,.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 clamp(16px, 5vw, 60px);
+  display: flex; align-items: center; justify-content: space-between;
+  height: 60px;
+}
+
+.logo {
+  font-family: var(--font-head);
+  font-size: 1.6rem; font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 2px;
+  text-decoration: none;
+  display: flex; align-items: center; gap: 8px;
+}
+.logo span { color: var(--gold); }
+
+.nav-links {
+  display: flex; gap: 28px; align-items: center;
+  list-style: none;
+}
+.nav-links a {
+  color: var(--muted);
+  text-decoration: none;
+  font-family: var(--font-head);
+  font-size: 1rem; letter-spacing: 1px;
+  transition: color .2s;
+}
+.nav-links a:hover { color: var(--accent); }
+
+#auth-btn {
+  padding: 7px 20px;
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--font-head);
+  font-size: .95rem; letter-spacing: 1px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background .2s, color .2s;
+}
+#auth-btn:hover { background: var(--accent); color: var(--bg); }
+
+.hamburger {
+  display: none; flex-direction: column; gap: 5px;
+  cursor: pointer; background: none; border: none;
+}
+.hamburger span {
+  width: 24px; height: 2px;
+  background: var(--accent); border-radius: 2px;
+  transition: transform .3s;
+}
+
+.mobile-menu {
+  display: none; flex-direction: column;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px clamp(16px, 5vw, 60px);
+  gap: 12px;
+}
+.mobile-menu.open { display: flex; }
+.mobile-menu a {
+  color: var(--text); text-decoration: none;
+  font-family: var(--font-head); font-size: 1.1rem; letter-spacing: 1px;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+}
+
+/* ─── HERO ─── */
+#hero {
+  position: relative; overflow: hidden;
+  min-height: 90vh;
+  display: flex; align-items: center; justify-content: center;
+  text-align: center;
+  padding: 80px clamp(16px, 6vw, 80px);
+}
+
+.hero-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 0%, rgba(0,229,255,.12) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 80% 60%, rgba(255,215,0,.07) 0%, transparent 60%),
+    linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
+}
+
+.hero-content { position: relative; z-index: 1; max-width: 720px; }
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 5px 16px;
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  background: rgba(0,229,255,.06);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: .8rem;
+  letter-spacing: 2px;
+  margin-bottom: 24px;
+  animation: fadeDown .8s ease both;
+}
+.hero-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--sell);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .3; }
+}
+
+h1.hero-title {
+  font-family: var(--font-head);
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+  animation: fadeDown .8s .1s ease both;
+}
+h1.hero-title .hl { color: var(--accent); }
+
+.hero-sub {
+  font-size: clamp(.95rem, 2vw, 1.15rem);
+  color: var(--muted);
+  margin-bottom: 36px;
+  animation: fadeDown .8s .2s ease both;
+}
+
+.hero-btns {
+  display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+  animation: fadeDown .8s .3s ease both;
+}
+
+.btn-primary {
+  padding: 12px 30px;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  font-family: var(--font-head);
+  font-size: 1.05rem; font-weight: 700; letter-spacing: 1px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: transform .2s, box-shadow .2s;
+  text-decoration: none;
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(0,229,255,.35);
+}
+
+.btn-outline {
+  padding: 12px 30px;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  font-family: var(--font-head);
+  font-size: 1.05rem; font-weight: 600; letter-spacing: 1px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: border-color .2s, color .2s;
+  text-decoration: none;
+}
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+.hero-stats {
+  display: flex; gap: 40px; justify-content: center; flex-wrap: wrap;
+  margin-top: 52px;
+  animation: fadeDown .8s .4s ease both;
+}
+.stat { text-align: center; }
+.stat-num {
+  font-family: var(--font-head);
+  font-size: 2rem; font-weight: 700;
+  color: var(--accent);
+}
+.stat-label { font-size: .8rem; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── SECTION WRAPPER ─── */
+section { position: relative; z-index: 1; }
+.section-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 80px clamp(16px, 5vw, 40px);
+}
+
+.section-header { text-align: center; margin-bottom: 48px; }
+.section-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: .75rem; letter-spacing: 3px; color: var(--accent);
+  text-transform: uppercase; margin-bottom: 10px;
+}
+.section-header h2 {
+  font-family: var(--font-head);
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 700; letter-spacing: 1px;
+}
+
+/* ─── FILTERS ─── */
+.filters {
+  display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 28px; align-items: center;
+}
+.filter-btn {
+  padding: 6px 18px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--muted);
+  font-family: var(--font-head);
+  font-size: .9rem; letter-spacing: 1px;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.filter-btn:hover, .filter-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(0,229,255,.07);
+}
+
+.search-bar {
+  margin-left: auto;
+  position: relative;
+}
+.search-bar input {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 7px 14px 7px 36px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: .9rem;
+  width: 220px;
+  outline: none;
+  transition: border-color .2s;
+}
+.search-bar input:focus { border-color: var(--accent); }
+.search-bar i {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  color: var(--muted); font-size: .85rem;
+}
+
+/* ─── GRID ─── */
+#listings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+/* ─── CARD ─── */
+.listing-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 22px;
+  display: flex; flex-direction: column; gap: 12px;
+  position: relative; overflow: hidden;
+  transition: transform .25s, border-color .25s, box-shadow .25s;
+  animation: fadeUp .5s ease both;
+}
+.listing-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(0,229,255,.35);
+  box-shadow: 0 12px 40px rgba(0,0,0,.4);
+}
+.listing-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px;
+}
+.listing-card[data-type="SELL"]::before { background: var(--sell); }
+.listing-card[data-type="NEED"]::before { background: var(--need); }
+
+.card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+
+.card-title {
+  font-family: var(--font-head);
+  font-size: 1.15rem; font-weight: 700;
+  letter-spacing: .5px;
+  flex: 1;
+}
+
+.badges { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 100px;
+  font-family: var(--font-mono);
+  font-size: .7rem; letter-spacing: 1px;
+  font-weight: 600;
+}
+.badge-sell { background: rgba(0,255,136,.12); color: var(--sell); border: 1px solid rgba(0,255,136,.3); }
+.badge-need { background: rgba(255,123,0,.12); color: var(--need); border: 1px solid rgba(255,123,0,.3); }
+.badge-cat  { background: rgba(0,229,255,.08); color: var(--accent); border: 1px solid rgba(0,229,255,.2); }
+
+.card-price {
+  font-family: var(--font-head);
+  font-size: 1.5rem; font-weight: 700;
+  color: var(--gold);
+}
+.card-price span { font-size: .85rem; color: var(--muted); font-weight: 400; }
+
+.card-desc {
+  font-size: .88rem;
+  color: var(--muted);
+  flex: 1;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-meta {
+  font-family: var(--font-mono);
+  font-size: .7rem; color: var(--muted);
+  display: flex; align-items: center; gap: 6px;
+}
+
+.card-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.btn-wa {
+  flex: 1;
+  padding: 9px 14px;
+  background: #25d366;
+  color: #fff;
+  border: none; border-radius: 4px;
+  font-family: var(--font-head);
+  font-size: .9rem; letter-spacing: .5px; font-weight: 600;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: opacity .2s, transform .2s;
+  text-decoration: none;
+}
+.btn-wa:hover { opacity: .88; transform: translateY(-1px); }
+
+.btn-admin {
+  flex: 1;
+  padding: 9px 14px;
+  background: rgba(255,215,0,.1);
+  color: var(--gold);
+  border: 1px solid rgba(255,215,0,.3);
+  border-radius: 4px;
+  font-family: var(--font-head);
+  font-size: .9rem; letter-spacing: .5px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: background .2s, transform .2s;
+  text-decoration: none;
+}
+.btn-admin:hover { background: rgba(255,215,0,.18); transform: translateY(-1px); }
+
+.btn-delete {
+  padding: 9px 12px;
+  background: rgba(255,68,68,.1);
+  color: var(--danger);
+  border: 1px solid rgba(255,68,68,.25);
+  border-radius: 4px;
+  cursor: pointer; font-size: .85rem;
+  transition: background .2s;
+}
+.btn-delete:hover { background: rgba(255,68,68,.22); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.empty-state {
+  grid-column: 1/-1;
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+.empty-state i { font-size: 3rem; margin-bottom: 16px; display: block; color: var(--border); }
+.empty-state p { font-family: var(--font-head); font-size: 1.1rem; letter-spacing: 1px; }
+
+/* ─── POST AD SECTION ─── */
+#post-section { background: var(--surface); }
+
+.form-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: clamp(24px, 5vw, 48px);
+  max-width: 640px; margin: 0 auto;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+@media (max-width: 560px) { .form-grid { grid-template-columns: 1fr; } }
+
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group.full { grid-column: 1/-1; }
+
+label {
+  font-family: var(--font-mono);
+  font-size: .75rem; letter-spacing: 2px;
+  color: var(--muted); text-transform: uppercase;
+}
+
+input, select, textarea {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: .95rem;
+  outline: none;
+  transition: border-color .2s;
+  width: 100%;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+select option { background: var(--surface); }
+textarea { resize: vertical; min-height: 100px; }
+
+.login-prompt {
+  text-align: center; padding: 40px 20px;
+}
+.login-prompt i { font-size: 2.5rem; color: var(--accent); margin-bottom: 16px; display: block; }
+.login-prompt p { color: var(--muted); margin-bottom: 20px; }
+
+/* ─── HOW IT WORKS ─── */
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+.step-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 32px 28px;
+  text-align: center;
+  transition: border-color .25s, transform .25s;
+}
+.step-card:hover { border-color: rgba(0,229,255,.4); transform: translateY(-4px); }
+
+.step-num {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: rgba(0,229,255,.1);
+  border: 1px solid rgba(0,229,255,.3);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 18px;
+  font-family: var(--font-head);
+  font-size: 1.3rem; font-weight: 700;
+  color: var(--accent);
+}
+
+.step-card h3 {
+  font-family: var(--font-head);
+  font-size: 1.2rem; letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+.step-card p { font-size: .88rem; color: var(--muted); }
+
+/* ─── TRUST SECTION ─── */
+#trust { background: var(--surface); }
+
+.trust-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin-bottom: 48px;
+}
+
+.trust-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 28px 22px;
+  text-align: center;
+}
+.trust-card i {
+  font-size: 2rem; margin-bottom: 14px;
+  display: block; color: var(--accent);
+}
+.trust-card h4 {
+  font-family: var(--font-head);
+  font-size: 1.1rem; letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+.trust-card p { font-size: .85rem; color: var(--muted); }
+
+.testimonials { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; }
+.testimonial {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 22px;
+}
+.testimonial p { font-size: .9rem; color: var(--muted); font-style: italic; margin-bottom: 12px; }
+.testimonial-name {
+  font-family: var(--font-head);
+  font-size: .95rem; color: var(--accent); letter-spacing: 1px;
+}
+
+/* ─── CTA ─── */
+#cta {
+  text-align: center;
+  padding: 80px clamp(16px,5vw,40px);
+}
+#cta h2 {
+  font-family: var(--font-head);
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 700; letter-spacing: 1px;
+  margin-bottom: 14px;
+}
+#cta p { color: var(--muted); margin-bottom: 36px; }
+.cta-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+/* ─── FOOTER ─── */
+footer {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 36px clamp(16px,5vw,60px);
+}
+.footer-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;
+}
+.footer-logo {
+  font-family: var(--font-head); font-size: 1.3rem; font-weight: 700;
+  color: var(--accent); letter-spacing: 2px;
+}
+.footer-logo span { color: var(--gold); }
+.footer-links { display: flex; gap: 20px; }
+.footer-links a { color: var(--muted); text-decoration: none; font-size: .88rem; transition: color .2s; }
+.footer-links a:hover { color: var(--accent); }
+.footer-social { display: flex; gap: 14px; }
+.footer-social a {
+  width: 34px; height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted); font-size: .85rem;
+  text-decoration: none;
+  transition: border-color .2s, color .2s;
+}
+.footer-social a:hover { border-color: var(--accent); color: var(--accent); }
+.footer-copy { width: 100%; text-align: center; color: var(--muted); font-size: .78rem; margin-top: 16px; }
+
+/* ─── TOAST ─── */
+#toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--card); border: 1px solid var(--border);
+  padding: 12px 22px; border-radius: 6px;
+  font-family: var(--font-head); font-size: .95rem; letter-spacing: .5px;
+  box-shadow: 0 8px 30px rgba(0,0,0,.5);
+  transform: translateY(80px); opacity: 0;
+  transition: all .3s; z-index: 999;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+#toast.success { border-color: var(--sell); color: var(--sell); }
+#toast.error   { border-color: var(--danger); color: var(--danger); }
+
+/* ─── LOADER ─── */
+#loader {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; padding: 40px; grid-column: 1/-1; color: var(--muted);
+  font-family: var(--font-mono); font-size: .85rem; letter-spacing: 2px;
+}
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
+  animation: bounce .8s infinite alternate; }
+.dot:nth-child(2) { animation-delay: .15s; }
+.dot:nth-child(3) { animation-delay: .3s; }
+@keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-8px); } }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 720px) {
+  .nav-links { display: none; }
+  .hamburger { display: flex; }
+  #auth-btn { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="navbar">
+  <a class="logo" href="#hero">⚔ Raja <span>Bazar</span></a>
+  <ul class="nav-links">
+    <li><a href="#hero">Home</a></li>
+    <li><a href="#marketplace">Marketplace</a></li>
+    <li><a href="#post-section">Post Ad</a></li>
+    <li><a href="#how-it-works">How It Works</a></li>
+  </ul>
+  <button id="auth-btn">Login</button>
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <a href="#hero">Home</a>
+  <a href="#marketplace">Marketplace</a>
+  <a href="#post-section">Post Ad</a>
+  <a href="#how-it-works">How It Works</a>
+  <button id="auth-btn-mobile" style="margin-top:8px;padding:10px 20px;background:transparent;border:1px solid var(--accent);color:var(--accent);font-family:var(--font-head);font-size:1rem;border-radius:4px;cursor:pointer;">Login</button>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-badge">🟢 MARKETPLACE LIVE</div>
+    <h1 class="hero-title">Buy & Sell <span class="hl">PUBG Assets</span> Safely</h1>
+    <p class="hero-sub">POP, Accounts, UC — Fast &amp; Trusted Deals through Admin-Verified Transactions</p>
+    <div class="hero-btns">
+      <a href="#marketplace" class="btn-primary">🛒 Browse Marketplace</a>
+      <a href="#post-section" class="btn-outline">📢 Post Ad</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num" id="stat-listings">—</div><div class="stat-label">Active Listings</div></div>
+      <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Admin Verified</div></div>
+      <div class="stat"><div class="stat-num">0%</div><div class="stat-label">Scam Rate</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- MARKETPLACE -->
+<section id="marketplace">
+  <div class="section-wrap">
+    <div class="section-header">
+      <div class="section-tag">// marketplace</div>
+      <h2>Active Listings</h2>
+    </div>
+
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="SELL">Selling</button>
+      <button class="filter-btn" data-filter="NEED">Need</button>
+      <button class="filter-btn" data-filter-cat="POP">POP</button>
+      <button class="filter-btn" data-filter-cat="Account">Account</button>
+      <button class="filter-btn" data-filter-cat="UC">UC</button>
+      <div class="search-bar">
+        <i class="fas fa-search"></i>
+        <input type="text" id="search-input" placeholder="Search listings…">
+      </div>
+    </div>
+
+    <div id="listings-grid">
+      <div id="loader">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <span>Loading listings…</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- POST AD -->
+<section id="post-section">
+  <div class="section-wrap">
+    <div class="section-header">
+      <div class="section-tag">// post ad</div>
+      <h2>Create a Listing</h2>
+    </div>
+    <div class="form-card" id="post-form-wrap">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how-it-works">
+  <div class="section-wrap">
+    <div class="section-header">
+      <div class="section-tag">// process</div>
+      <h2>How It Works</h2>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <h3>Browse or Post</h3>
+        <p>View all active listings freely, or sign in and post your own ad in seconds.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <h3>Chat & Negotiate</h3>
+        <p>Connect directly with the buyer or seller via WhatsApp. Agree on the deal privately.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <h3>Admin Safe Deal</h3>
+        <p>Use the admin as a trusted middleman to ensure a secure and scam-free transaction.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST -->
+<section id="trust">
+  <div class="section-wrap">
+    <div class="section-header">
+      <div class="section-tag">// safety</div>
+      <h2>Why Trust Raja Bazar?</h2>
+    </div>
+    <div class="trust-grid">
+      <div class="trust-card">
+        <i class="fas fa-shield-halved"></i>
+        <h4>Admin Controlled Deals</h4>
+        <p>Every deal can be handled through our verified admin for complete peace of mind.</p>
+      </div>
+      <div class="trust-card">
+        <i class="fas fa-lock"></i>
+        <h4>Safe & Secure Trading</h4>
+        <p>No middleman scams. Admin holds the assets until both parties confirm the deal.</p>
+      </div>
+      <div class="trust-card">
+        <i class="fas fa-star"></i>
+        <h4>Trusted Marketplace</h4>
+        <p>Built on the existing WhatsApp community — now organized and centralized.</p>
+      </div>
+    </div>
+
+    <div class="section-header" style="margin-top:48px; margin-bottom:24px;">
+      <h2 style="font-size:1.5rem;">What Traders Say</h2>
+    </div>
+    <div class="testimonials">
+      <div class="testimonial">
+        <p>"Sold 50K POP within 2 hours. The admin deal feature is a game changer — no stress!"</p>
+        <div class="testimonial-name">★★★★★ — Ahmed K.</div>
+      </div>
+      <div class="testimonial">
+        <p>"Bought a UC package safely. Admin held the deal the whole time. Fully trusted platform."</p>
+        <div class="testimonial-name">★★★★★ — Sara M.</div>
+      </div>
+      <div class="testimonial">
+        <p>"Finally a proper marketplace instead of random WhatsApp groups. Clean and organized."</p>
+        <div class="testimonial-name">★★★★★ — Bilal R.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="section-tag">// start trading</div>
+  <h2>Ready to Trade?</h2>
+  <p>Join Raja Bazar and buy or sell your PUBG assets safely today.</p>
+  <div class="cta-btns">
+    <a id="cta-wa" href="#" class="btn-primary">
+      <i class="fab fa-whatsapp"></i> Contact Admin on WhatsApp
+    </a>
+    <a href="#marketplace" class="btn-outline">Browse Listings</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">⚔ Raja <span>Bazar</span></div>
+    <div class="footer-links">
+      <a href="#">About</a>
+      <a href="#">Contact</a>
+      <a href="#how-it-works">How It Works</a>
+    </div>
+    <div class="footer-social">
+      <a href="#" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+      <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
+      <a href="#" title="Telegram"><i class="fab fa-telegram"></i></a>
+    </div>
+    <div class="footer-copy">© 2025 Raja Bazar. All rights reserved. Made for the PUBG community.</div>
+  </div>
+</footer>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ─── UTILS ───────────────────────────────────────────────
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  setTimeout(() => el.className = '', 3000);
+}
+
+function timeAgo(ts) {
+  if (!ts) return '';
+  const secs = Math.floor((Date.now() - ts.toMillis()) / 1000);
+  if (secs < 60) return 'just now';
+  if (secs < 3600) return Math.floor(secs/60) + 'm ago';
+  if (secs < 86400) return Math.floor(secs/3600) + 'h ago';
+  return Math.floor(secs/86400) + 'd ago';
+}
+
+// ─── HAMBURGER ───────────────────────────────────────────
+document.getElementById('hamburger').addEventListener('click', () => {
+  document.getElementById('mobile-menu').classList.toggle('open');
+});
+document.querySelectorAll('.mobile-menu a').forEach(a => {
+  a.addEventListener('click', () => document.getElementById('mobile-menu').classList.remove('open'));
+});
+
+// ─── WAIT FOR FIREBASE ───────────────────────────────────
+let appReady = false;
+const waitFirebase = (cb) => {
+  const check = () => window._rb ? cb() : setTimeout(check, 100);
+  check();
+};
+
+// ─── STATE ───────────────────────────────────────────────
+let currentUser = null;
+let allListings = [];
+let activeFilter = 'all';
+let activeCatFilter = '';
+let searchQuery = '';
+
+// ─── AUTH ─────────────────────────────────────────────────
+waitFirebase(() => {
+  const { auth, onAuthStateChanged, signInWithPopup, signOut, provider, ADMIN_WHATSAPP } = window._rb;
+
+  // Admin CTA
+  document.getElementById('cta-wa').href =
+    `https://wa.me/${ADMIN_WHATSAPP}?text=Hi+Admin%2C+I+want+to+start+a+safe+deal+on+Raja+Bazar`;
+
+  onAuthStateChanged(auth, user => {
+    currentUser = user;
+    updateAuthUI();
+    renderPostForm();
+  });
+
+  function login() {
+    signInWithPopup(auth, provider).catch(e => toast(e.message, 'error'));
+  }
+  function logout() {
+    signOut(auth);
+  }
+
+  document.getElementById('auth-btn').addEventListener('click', () => currentUser ? logout() : login());
+  document.getElementById('auth-btn-mobile').addEventListener('click', () => currentUser ? logout() : login());
+
+  function updateAuthUI() {
+    const btn  = document.getElementById('auth-btn');
+    const btnM = document.getElementById('auth-btn-mobile');
+    if (currentUser) {
+      btn.textContent  = 'Logout';
+      btnM.textContent = 'Logout';
+    } else {
+      btn.textContent  = 'Login';
+      btnM.textContent = 'Login';
+    }
+    renderGrid();
+  }
+
+  // ─── LOAD LISTINGS ───────────────────────────────────────
+  async function loadListings() {
+    const { db, collection, query, orderBy, getDocs } = window._rb;
+    try {
+      const q = query(collection(db, 'listings'), orderBy('timestamp', 'desc'));
+      const snap = await getDocs(q);
+      allListings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      document.getElementById('stat-listings').textContent = allListings.length;
+      renderGrid();
+    } catch (e) {
+      // Firebase not configured yet — show demo listings
+      allListings = [
+        { id: 'd1', type: 'SELL', category: 'POP', price: '500 PKR', title: '32K POP Available',
+          description: 'High quality POP for quick sale. Fast delivery guaranteed. Negotiable price.',
+          user_id: 'demo', timestamp: null },
+        { id: 'd2', type: 'NEED', category: 'UC', price: '1200 PKR', title: 'Need 600 UC',
+          description: 'Looking to buy 600 UC at a fair rate. Trusted buyer, have done multiple deals.',
+          user_id: 'demo', timestamp: null },
+        { id: 'd3', type: 'SELL', category: 'Account', price: '8000 PKR', title: 'Level 70 Conqueror Account',
+          description: 'Season 21 Conqueror account with rare outfits. Original email included.',
+          user_id: 'demo', timestamp: null },
+        { id: 'd4', type: 'SELL', category: 'POP', price: '1200 PKR', title: '100K POP Bulk Deal',
+          description: 'Selling 100K POP in bulk. Best price for resellers. Instant transfer.',
+          user_id: 'demo', timestamp: null },
+        { id: 'd5', type: 'NEED', category: 'Account', price: '3000 PKR', title: 'Need Diamond Account',
+          description: 'Looking for a Diamond-ranked account with good KD ratio. Budget 3000-5000 PKR.',
+          user_id: 'demo', timestamp: null },
+        { id: 'd6', type: 'SELL', category: 'UC', price: '2200 PKR', title: '1800 UC for Sale',
+          description: 'Selling 1800 UC at low rates. Quick and safe delivery via admin deal.',
+          user_id: 'demo', timestamp: null },
+      ];
+      document.getElementById('stat-listings').textContent = allListings.length;
+      renderGrid();
+    }
+  }
+
+  loadListings();
+
+  // ─── RENDER GRID ─────────────────────────────────────────
+  window.renderGrid = function() {
+    const grid = document.getElementById('listings-grid');
+
+    let items = [...allListings];
+
+    if (activeFilter !== 'all') items = items.filter(i => i.type === activeFilter);
+    if (activeCatFilter) items = items.filter(i => i.category === activeCatFilter);
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      items = items.filter(i =>
+        (i.title || '').toLowerCase().includes(q) ||
+        (i.description || '').toLowerCase().includes(q) ||
+        (i.category || '').toLowerCase().includes(q)
+      );
+    }
+
+    grid.innerHTML = '';
+
+    if (!items.length) {
+      grid.innerHTML = `<div class="empty-state">
+        <i class="fas fa-box-open"></i>
+        <p>No listings found</p>
+      </div>`;
+      return;
+    }
+
+    items.forEach((item, idx) => {
+      const isOwner = currentUser && currentUser.uid === item.user_id;
+      const waMsg   = encodeURIComponent(`Hi! I saw your listing "${item.title || item.category}" on Raja Bazar. Is it still available?`);
+      const adminMsg = encodeURIComponent(`Hi Admin, I want to start a safe deal for: "${item.title || item.category}" — Price: ${item.price}`);
+      const { ADMIN_WHATSAPP } = window._rb;
+
+      const card = document.createElement('div');
+      card.className = 'listing-card';
+      card.dataset.type = item.type;
+      card.style.animationDelay = (idx * 0.06) + 's';
+      card.innerHTML = `
+        <div class="card-top">
+          <div class="card-title">${escHtml(item.title || item.category + ' Listing')}</div>
+          <div class="badges">
+            <span class="badge badge-${item.type === 'SELL' ? 'sell' : 'need'}">${item.type}</span>
+            <span class="badge badge-cat">${escHtml(item.category)}</span>
+          </div>
+        </div>
+        <div class="card-price">${escHtml(item.price)} <span>PKR</span></div>
+        <div class="card-desc">${escHtml(item.description || 'No description provided.')}</div>
+        <div class="card-meta">
+          <i class="fas fa-clock"></i> ${item.timestamp ? timeAgo(item.timestamp) : 'Recently posted'}
+        </div>
+        <div class="card-btns">
+          <a class="btn-wa" href="https://wa.me/${ADMIN_WHATSAPP}?text=${waMsg}" target="_blank" rel="noopener">
+            <i class="fab fa-whatsapp"></i> Contact Seller
+          </a>
+          <a class="btn-admin" href="https://wa.me/${ADMIN_WHATSAPP}?text=${adminMsg}" target="_blank" rel="noopener">
+            <i class="fas fa-shield-halved"></i> Admin Deal
+          </a>
+          ${isOwner ? `<button class="btn-delete" data-id="${item.id}"><i class="fas fa-trash"></i></button>` : ''}
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+
+    // Delete handlers
+    grid.querySelectorAll('.btn-delete').forEach(btn => {
+      btn.addEventListener('click', () => deletePost(btn.dataset.id));
+    });
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ─── DELETE ───────────────────────────────────────────────
+  async function deletePost(id) {
+    if (!confirm('Delete this listing?')) return;
+    const { db, doc, deleteDoc } = window._rb;
+    try {
+      await deleteDoc(doc(db, 'listings', id));
+      allListings = allListings.filter(i => i.id !== id);
+      document.getElementById('stat-listings').textContent = allListings.length;
+      renderGrid();
+      toast('Listing deleted');
+    } catch (e) {
+      // Demo mode
+      allListings = allListings.filter(i => i.id !== id);
+      renderGrid();
+      toast('Listing removed (demo mode)');
+    }
+  }
+
+  // ─── POST FORM ───────────────────────────────────────────
+  window.renderPostForm = function() {
+    const wrap = document.getElementById('post-form-wrap');
+    if (!currentUser) {
+      wrap.innerHTML = `
+        <div class="login-prompt">
+          <i class="fas fa-user-lock"></i>
+          <p>You need to be logged in to post an ad.</p>
+          <button class="btn-primary" id="login-btn-form">Login with Google</button>
+        </div>`;
+      document.getElementById('login-btn-form').addEventListener('click', () => signInWithPopup(auth, provider));
+      return;
+    }
+
+    wrap.innerHTML = `
+      <form id="post-form" novalidate>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Ad Type</label>
+            <select name="type" required>
+              <option value="SELL">SELL — I'm selling</option>
+              <option value="NEED">NEED — I'm buying</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select name="category" required>
+              <option value="POP">POP (Popularity)</option>
+              <option value="UC">UC</option>
+              <option value="Account">Account</option>
+              <option value="Other">Other / Custom</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Title</label>
+            <input name="title" type="text" placeholder="e.g. 32K POP Available" required>
+          </div>
+          <div class="form-group">
+            <label>Price (PKR)</label>
+            <input name="price" type="text" placeholder="e.g. 500" required>
+          </div>
+          <div class="form-group full">
+            <label>Description</label>
+            <textarea name="description" placeholder="Describe your listing in detail…" required></textarea>
+          </div>
+        </div>
+        <div style="margin-top:20px;">
+          <button type="submit" class="btn-primary" style="width:100%;padding:13px;">
+            📢 Post Ad
+          </button>
+        </div>
+      </form>`;
+
+    document.getElementById('post-form').addEventListener('submit', submitPost);
+  }
+
+  async function submitPost(e) {
+    e.preventDefault();
+    const f = e.target;
+    const data = {
+      type:        f.type.value,
+      category:    f.category.value,
+      title:       f.title.value.trim(),
+      price:       f.price.value.trim(),
+      description: f.description.value.trim(),
+      user_id:     currentUser.uid,
+      timestamp:   window._rb.serverTimestamp(),
+    };
+
+    if (!data.title || !data.price || !data.description) {
+      toast('Please fill all fields', 'error'); return;
+    }
+
+    const btn = f.querySelector('button[type=submit]');
+    btn.textContent = 'Posting…'; btn.disabled = true;
+
+    try {
+      const { db, collection, addDoc } = window._rb;
+      const docRef = await addDoc(collection(db, 'listings'), data);
+      allListings.unshift({ id: docRef.id, ...data, timestamp: { toMillis: () => Date.now() } });
+      document.getElementById('stat-listings').textContent = allListings.length;
+      f.reset();
+      toast('Ad posted successfully!');
+      renderGrid();
+      document.getElementById('marketplace').scrollIntoView({ behavior: 'smooth' });
+    } catch (err) {
+      // Demo mode
+      allListings.unshift({ id: 'demo_' + Date.now(), ...data, timestamp: { toMillis: () => Date.now() } });
+      document.getElementById('stat-listings').textContent = allListings.length;
+      f.reset();
+      toast('Ad posted (demo mode)!');
+      renderGrid();
+      document.getElementById('marketplace').scrollIntoView({ behavior: 'smooth' });
+    } finally {
+      btn.textContent = '📢 Post Ad'; btn.disabled = false;
+    }
+  }
+
+  // ─── FILTERS ─────────────────────────────────────────────
+  document.querySelectorAll('.filter-btn[data-filter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter;
+      renderGrid();
+    });
+  });
+  document.querySelectorAll('.filter-btn[data-filter-cat]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (activeCatFilter === btn.dataset.filterCat) {
+        activeCatFilter = '';
+        btn.classList.remove('active');
+      } else {
+        document.querySelectorAll('.filter-btn[data-filter-cat]').forEach(b => b.classList.remove('active'));
+        activeCatFilter = btn.dataset.filterCat;
+        btn.classList.add('active');
+      }
+      renderGrid();
+    });
+  });
+
+  document.getElementById('search-input').addEventListener('input', e => {
+    searchQuery = e.target.value;
+    renderGrid();
+  });
+});
+</script>
+</body>
+</html>

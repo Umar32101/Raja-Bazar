@@ -1,19 +1,21 @@
 import React, { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
+import { LoginModal } from './LoginModal'
 
 export function Navbar() {
-  const { currentUser, login, logout } = useAuth()
+  const { currentUser, logout } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [loginModalOpen, setLoginModalOpen] = useState(false)
 
   const handleAuthClick = async () => {
-    try {
-      if (currentUser) {
+    if (currentUser) {
+      try {
         await logout()
-      } else {
-        await login()
+      } catch (e) {
+        console.error('Logout error:', e)
       }
-    } catch (e) {
-      console.error('Auth error:', e)
+    } else {
+      setLoginModalOpen(true)
     }
   }
 
@@ -59,6 +61,9 @@ export function Navbar() {
           </button>
         </div>
       )}
+
+      <LoginModal isOpen={loginModalOpen} onClose={() => setLoginModalOpen(false)} />
     </nav>
   )
+}
 }

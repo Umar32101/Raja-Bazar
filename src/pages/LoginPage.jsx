@@ -1,0 +1,116 @@
+import React, { useState } from 'react'
+import { useAuth } from '../hooks/useAuth'
+import { useNavigate } from 'react-router-dom'
+
+export function LoginPage() {
+  const { loginWithEmail, login } = useAuth()
+  const navigate = useNavigate()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const handleEmailLogin = async (e) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+
+    if (!email || !password) {
+      setError('Please fill in all fields')
+      setLoading(false)
+      return
+    }
+
+    try {
+      await loginWithEmail(email, password)
+      navigate('/')
+    } catch (err) {
+      if (err.code === 'auth/user-not-found') {
+        setError('No account found with this email')
+      } else if (err.code === 'auth/wrong-password') {
+        setError('Incorrect password')
+      } else if (err.code === 'auth/invalid-email') {
+        setError('Invalid email address')
+      } else {
+        setError(err.message || 'Failed to sign in')
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGoogleLogin = async () => {
+    setError('')
+    setLoading(true)
+
+    try {
+      await login()
+      navigate('/')
+    } catch (err) {
+      setError(err.message || 'Failed to sign in with Google')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="auth-page">
+      <div className="auth-container">
+        <div className="auth-card">
+          <h1>⚔ Raja Bazar</h1>
+          <h2>Welcome Back</h2>
+          <p className="auth-subtitle">Sign in to your account</p>
+
+          {error && <div className="error-message">{error}</div>}
+
+          <form onSubmit={handleEmailLogin}>
+            <div className="form-group">
+              <label htmlFor="email">Email Address</label>
+              <input
+                type="email"
+                id="email"
+                placeholder="your@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                placeholder="Your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+
+            <button type="submit" className="btn-primary" disabled={loading}>
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
+
+          <div className="divider">
+            <span>OR</span>
+          </div>
+
+          <button className="btn-google" onClick={handleGoogleLogin} disabled={loading}>
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
+            Continue with Google
+          </button>
+
+          <p className="auth-footer">
+            Don't have an account? <a href="/signup">Sign up here</a>
+          </p>
+
+          <p className="auth-info">
+            💡 Safe and secure PUBG marketplace
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}

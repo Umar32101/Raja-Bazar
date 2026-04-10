@@ -1,22 +1,23 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { LoginModal } from './LoginModal'
 
 export function Navbar() {
   const { currentUser, logout } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [loginModalOpen, setLoginModalOpen] = useState(false)
+  const navigate = useNavigate()
 
-  const handleAuthClick = async () => {
-    if (currentUser) {
-      try {
-        await logout()
-      } catch (e) {
-        console.error('Logout error:', e)
-      }
-    } else {
-      setLoginModalOpen(true)
+  const handleLogout = async () => {
+    try {
+      await logout()
+      navigate('/login')
+    } catch (e) {
+      console.error('Logout error:', e)
     }
+  }
+
+  const handleLogin = () => {
+    navigate('/login')
   }
 
   const closeMobileMenu = () => setMobileMenuOpen(false)
@@ -32,7 +33,7 @@ export function Navbar() {
         <li><a href="#post-section">Post Ad</a></li>
         <li><a href="#how-it-works">How It Works</a></li>
       </ul>
-      <button className="auth-btn auth-btn-desktop" onClick={handleAuthClick}>
+      <button className="auth-btn auth-btn-desktop" onClick={currentUser ? handleLogout : handleLogin}>
         {currentUser ? 'Logout' : 'Login'}
       </button>
       <button
@@ -52,7 +53,7 @@ export function Navbar() {
           <button
             className="auth-btn"
             onClick={() => {
-              handleAuthClick()
+              currentUser ? handleLogout() : handleLogin()
               closeMobileMenu()
             }}
             style={{ marginTop: '8px' }}
@@ -61,9 +62,7 @@ export function Navbar() {
           </button>
         </div>
       )}
-
-      <LoginModal isOpen={loginModalOpen} onClose={() => setLoginModalOpen(false)} />
     </nav>
   )
 }
-}
+

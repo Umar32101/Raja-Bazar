@@ -1,6 +1,10 @@
 import React, { useState } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { ListingsProvider } from './context/ListingsContext'
+import { useAuth } from './hooks/useAuth'
+import { LoginPage } from './pages/LoginPage'
+import { SignupPage } from './pages/SignupPage'
 import { Navbar } from './components/Navbar'
 import { Hero } from './components/Hero'
 import { Marketplace } from './components/Marketplace'
@@ -13,6 +17,7 @@ import { Toast } from './components/Toast'
 
 function AppContent() {
   const [toast, setToast] = useState({ message: '', type: 'success', visible: false })
+  const { currentUser, loading } = useAuth()
 
   React.useEffect(() => {
     // Make toast function globally available for error handling
@@ -21,23 +26,36 @@ function AppContent() {
     }
   }, [])
 
+  if (loading) {
+    return <div className="loading-spinner">Loading...</div>
+  }
+
   return (
-    <>
-      <Navbar />
-      <Hero />
-      <Marketplace />
-      <PostFormSection />
-      <HowItWorks />
-      <Trust />
-      <CTA />
-      <Footer />
-      <Toast
-        message={toast.message}
-        type={toast.type}
-        isVisible={toast.visible}
-        duration={3000}
+    <Routes>
+      <Route path="/login" element={currentUser ? <Navigate to="/" /> : <LoginPage />} />
+      <Route path="/signup" element={currentUser ? <Navigate to="/" /> : <SignupPage />} />
+      <Route
+        path="/*"
+        element={
+          <>
+            <Navbar />
+            <Hero />
+            <Marketplace />
+            <PostFormSection />
+            <HowItWorks />
+            <Trust />
+            <CTA />
+            <Footer />
+            <Toast
+              message={toast.message}
+              type={toast.type}
+              isVisible={toast.visible}
+              duration={3000}
+            />
+          </>
+        }
       />
-    </>
+    </Routes>
   )
 }
 

@@ -1,6 +1,13 @@
 import React, { createContext, useState, useEffect } from 'react'
 import { auth, db, ADMIN_WHATSAPP } from '../firebase'
-import { signInWithPopup, GoogleAuthProvider, signOut as firebaseSignOut, onAuthStateChanged } from 'firebase/auth'
+import { 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  signOut as firebaseSignOut, 
+  onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword
+} from 'firebase/auth'
 
 export const AuthContext = createContext()
 
@@ -17,6 +24,27 @@ export function AuthProvider({ children }) {
     return unsubscribe
   }, [])
 
+  // Email/Password Sign Up
+  const signup = async (email, password) => {
+    try {
+      const result = await createUserWithEmailAndPassword(auth, email, password)
+      return result.user
+    } catch (error) {
+      throw error
+    }
+  }
+
+  // Email/Password Sign In
+  const loginWithEmail = async (email, password) => {
+    try {
+      const result = await signInWithEmailAndPassword(auth, email, password)
+      return result.user
+    } catch (error) {
+      throw error
+    }
+  }
+
+  // Google Sign In (Popup)
   const login = async () => {
     try {
       await signInWithPopup(auth, provider)
@@ -34,7 +62,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ currentUser, loading, login, logout, ADMIN_WHATSAPP, db }}>
+    <AuthContext.Provider value={{ currentUser, loading, login, loginWithEmail, signup, logout, ADMIN_WHATSAPP, db }}>
       {children}
     </AuthContext.Provider>
   )

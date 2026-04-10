@@ -27,9 +27,12 @@ export function AuthProvider({ children }) {
   // Email/Password Sign Up
   const signup = async (email, password) => {
     try {
+      console.log('Attempting signup with email:', email)
       const result = await createUserWithEmailAndPassword(auth, email, password)
+      console.log('Signup successful:', result.user.email)
       return result.user
     } catch (error) {
+      console.error('Signup error:', error.code, error.message)
       throw error
     }
   }
@@ -37,9 +40,12 @@ export function AuthProvider({ children }) {
   // Email/Password Sign In
   const loginWithEmail = async (email, password) => {
     try {
+      console.log('Attempting login with email:', email)
       const result = await signInWithEmailAndPassword(auth, email, password)
+      console.log('Login successful:', result.user.email)
       return result.user
     } catch (error) {
+      console.error('Login error:', error.code, error.message)
       throw error
     }
   }

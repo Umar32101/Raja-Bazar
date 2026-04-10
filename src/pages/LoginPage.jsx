@@ -25,12 +25,17 @@ export function LoginPage() {
       await loginWithEmail(email, password)
       navigate('/')
     } catch (err) {
+      console.error('Login error:', err.code, err.message)
       if (err.code === 'auth/user-not-found') {
         setError('No account found with this email')
       } else if (err.code === 'auth/wrong-password') {
         setError('Incorrect password')
       } else if (err.code === 'auth/invalid-email') {
         setError('Invalid email address')
+      } else if (err.code === 'auth/invalid-credential') {
+        setError('Email or password is incorrect')
+      } else if (err.code === 'auth/too-many-requests') {
+        setError('Too many login attempts. Please try again later')
       } else {
         setError(err.message || 'Failed to sign in')
       }

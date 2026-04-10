@@ -40,12 +40,15 @@ export function SignupPage() {
       await loginWithEmail(email, password)
       navigate('/')
     } catch (err) {
+      console.error('Signup error:', err.code, err.message)
       if (err.code === 'auth/weak-password') {
         setError('Password is too weak. Use at least 6 characters')
       } else if (err.code === 'auth/email-already-in-use') {
         setError('Email already registered. Please sign in')
       } else if (err.code === 'auth/invalid-email') {
         setError('Invalid email address')
+      } else if (err.code === 'auth/invalid-credential') {
+        setError('Invalid email or password format')
       } else {
         setError(err.message || 'Failed to create account')
       }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useNavigate } from 'react-router-dom'
+import { ForgetPasswordModal } from '../components/ForgetPasswordModal'
 
 export function LoginPage() {
   const { loginWithEmail, login } = useAuth()
@@ -9,40 +10,32 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showForgetPasswordModal, setShowForgetPasswordModal] = useState(false)
 
-  const handleEmailLogin = async (e) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+ const handleLogin = async (e) => {
+  e.preventDefault()
+  setError('')
+  setLoading(true)
 
-    if (!email || !password) {
-      setError('Please fill in all fields')
-      setLoading(false)
-      return
+  try {
+    await loginWithEmail(email, password)
+    navigate('/')
+  } catch (err) {
+    console.error('Login error:', err.code, err.message)
+    
+    if (err.code === 'auth/invalid-credential' || err.code === 'auth/wrong-password') {
+      setError('Incorrect email or password')
+    } else if (err.code === 'auth/user-not-found') {
+      setError('No account found with this email')
+    } else if (err.code === 'auth/invalid-email') {
+      setError('Invalid email address')
+    } else {
+      setError('Something went wrong. Please try again.')
     }
-
-    try {
-      await loginWithEmail(email, password)
-      navigate('/')
-    } catch (err) {
-      console.error('Login error:', err.code, err.message)
-      if (err.code === 'auth/user-not-found') {
-        setError('No account found with this email')
-      } else if (err.code === 'auth/wrong-password') {
-        setError('Incorrect password')
-      } else if (err.code === 'auth/invalid-email') {
-        setError('Invalid email address')
-      } else if (err.code === 'auth/invalid-credential') {
-        setError('Email or password is incorrect')
-      } else if (err.code === 'auth/too-many-requests') {
-        setError('Too many login attempts. Please try again later')
-      } else {
-        setError(err.message || 'Failed to sign in')
-      }
-    } finally {
-      setLoading(false)
-    }
+  } finally {
+    setLoading(false)
   }
+}
 
   const handleGoogleLogin = async () => {
     setError('')
@@ -68,7 +61,7 @@ export function LoginPage() {
 
           {error && <div className="error-message">{error}</div>}
 
-          <form onSubmit={handleEmailLogin}>
+          <form onSubmit={handleLogin}>
             <div className="form-group">
               <label htmlFor="email">Email Address</label>
               <input
@@ -91,6 +84,19 @@ export function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
               />
+            </div>
+
+            <div className="form-group-footer">
+              <a
+                href="#"
+                className="forgot-password-link"
+                onClick={(e) => {
+                  e.preventDefault()
+                  setShowForgetPasswordModal(true)
+                }}
+              >
+                Forgot Password?
+              </a>
             </div>
 
             <button type="submit" className="btn-primary" disabled={loading}>
@@ -116,6 +122,11 @@ export function LoginPage() {
           </p>
         </div>
       </div>
+
+      <ForgetPasswordModal
+        isOpen={showForgetPasswordModal}
+        onClose={() => setShowForgetPasswordModal(false)}
+      />
     </div>
   )
 }

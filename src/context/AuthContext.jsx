@@ -6,7 +6,8 @@ import {
   signOut as firebaseSignOut, 
   onAuthStateChanged,
   createUserWithEmailAndPassword,
-  signInWithEmailAndPassword
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail
 } from 'firebase/auth'
 
 export const AuthContext = createContext()
@@ -67,8 +68,18 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // Forget Password
+  const resetPassword = async (email) => {
+    try {
+      await sendPasswordResetEmail(auth, email)
+    } catch (error) {
+      console.error('Password reset error:', error.code, error.message)
+      throw error
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ currentUser, loading, login, loginWithEmail, signup, logout, ADMIN_WHATSAPP, db }}>
+    <AuthContext.Provider value={{ currentUser, loading, login, loginWithEmail, signup, logout, resetPassword, ADMIN_WHATSAPP, db }}>
       {children}
     </AuthContext.Provider>
   )

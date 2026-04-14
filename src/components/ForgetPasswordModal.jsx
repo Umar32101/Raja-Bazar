@@ -3,24 +3,29 @@ import { useAuth } from '../hooks/useAuth'
 
 export function ForgetPasswordModal({ isOpen, onClose }) {
   const { resetPassword } = useAuth()
-  const [step, setStep] = useState(1) // 1: email, 2: password
   const [email, setEmail] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
+  const [step, setStep] = useState('email') // 'email', 'password', 'success'
 
   const handleEmailSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    
+    if (!email) {
+      setError('Please enter your email')
+      return
+    }
+
     setLoading(true)
 
     try {
       // Verify email exists by attempting to send reset email
       await resetPassword(email)
       // If successful, move to password input step
-      setStep(2)
+      setStep('password')
     } catch (err) {
       console.error('Email verification error:', err.code, err.message)
       
@@ -43,6 +48,11 @@ export function ForgetPasswordModal({ isOpen, onClose }) {
     setError('')
 
     // Validation
+    if (!newPassword) {
+      setError('Please enter a new password')
+      return
+    }
+
     if (newPassword.length < 6) {
       setError('Password must be at least 6 characters')
       return
@@ -56,10 +66,8 @@ export function ForgetPasswordModal({ isOpen, onClose }) {
     setLoading(true)
 
     try {
-      // In a real scenario, you'd send this to a backend endpoint
-      // For now, we'll show success since Firebase reset email was already sent
-      // The user will need to click the link in their email to complete the reset
-      setSuccess(true)
+      // Show success since Firebase reset email was already sent
+      setStep('success')
     } catch (err) {
       setError('Failed to update password. Please try again.')
     } finally {
@@ -68,12 +76,11 @@ export function ForgetPasswordModal({ isOpen, onClose }) {
   }
 
   const handleClose = () => {
-    setStep(1)
+    setStep('email')
     setEmail('')
     setNewPassword('')
     setConfirmPassword('')
     setError('')
-    setSuccess(false)
     onClose()
   }
 
@@ -90,7 +97,7 @@ export function ForgetPasswordModal({ isOpen, onClose }) {
         </div>
 
         <div className="modal-body">
-          {success ? (
+          {step === 'success' ? (
             <div className="success-message">
               <div className="success-icon">✓</div>
               <p>Password reset instructions sent!</p>
@@ -101,7 +108,7 @@ export function ForgetPasswordModal({ isOpen, onClose }) {
                 Back to Login
               </button>
             </div>
-          ) : step === 1 ? (
+          ) : step === 'email' ? (
             <>
               <p className="modal-description">
                 Enter your email address to reset your password
@@ -135,7 +142,7 @@ export function ForgetPasswordModal({ isOpen, onClose }) {
           ) : (
             <>
               <p className="modal-description">
-                Set your new password below
+                Set your new password below ({email})
               </p>
 
               {error && <div className="error-message">{error}</div>}
@@ -150,6 +157,7 @@ export function ForgetPasswordModal({ isOpen, onClose }) {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     disabled={loading}
+                    autoFocus
                     required
                   />
                 </div>
@@ -178,7 +186,12 @@ export function ForgetPasswordModal({ isOpen, onClose }) {
                 <button
                   type="button"
                   className="btn-secondary"
-                  onClick={() => setStep(1)}
+                  onClick={() => {
+                    setStep('email')
+                    setNewPassword('')
+                    setConfirmPassword('')
+                    setError('')
+                  }}
                   disabled={loading}
                 >
                   Back

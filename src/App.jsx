@@ -14,6 +14,7 @@ import { Trust } from './components/Trust'
 import { CTA } from './components/CTA'
 import { Footer } from './components/Footer'
 import { Toast } from './components/Toast'
+import { SessionIndicator } from './components/SessionIndicator'
 
 function AppContent() {
   const [toast, setToast] = useState({ message: '', type: 'success', visible: false })
@@ -52,6 +53,7 @@ function AppContent() {
               isVisible={toast.visible}
               duration={3000}
             />
+            <SessionIndicator />
           </>
         }
       />

@@ -47,9 +47,9 @@ export function PostForm({ onSuccess }) {
       poster_phone: posterPhone,
     }
 
-    if (!data.title || !data.price || !data.description) {
+    if (!data.title || !data.price) {
       if (window.showToast) {
-        window.showToast('Please fill all fields', 'error')
+        window.showToast('Please fill in title and price', 'error')
       }
       return
     }
@@ -128,8 +128,7 @@ export function PostForm({ onSuccess }) {
             <label>Description</label>
             <textarea
               name="description"
-              placeholder="Describe your listing in detail…"
-              required
+              placeholder="Describe your listing in detail… (optional)"
             ></textarea>
           </div>
         </div>

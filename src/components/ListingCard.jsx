@@ -1,4 +1,5 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useListings } from '../hooks/useListings'
 
@@ -19,6 +20,7 @@ function escapeHtml(text) {
 }
 
 export function ListingCard({ item, idx, isOwner }) {
+  const navigate = useNavigate()
   const { ADMIN_WHATSAPP, currentUser } = useAuth()
   const { deleteListing } = useListings()
 
@@ -32,11 +34,20 @@ export function ListingCard({ item, idx, isOwner }) {
   }
 
   const handleDealClick = (dealType) => {
+    // Require user to be logged in
+    if (!currentUser) {
+      if (window.showToast) {
+        window.showToast('Please sign in to make a deal', 'error')
+      }
+      navigate('/login')
+      return
+    }
+
     // Log deal notification for admin
     const notification = {
       id: 'deal_' + Date.now(),
-      buyerId: currentUser?.uid || 'guest',
-      buyerEmail: currentUser?.email || 'guest',
+      buyerId: currentUser.uid,
+      buyerEmail: currentUser.email,
       sellerId: item.user_id,
       sellerEmail: item.poster_email,
       sellerPhone: item.poster_phone,
@@ -60,7 +71,7 @@ export function ListingCard({ item, idx, isOwner }) {
 
     // Show confirmation
     if (window.showToast) {
-      window.showToast('✓ Admin notified of your deal request', 'success')
+      window.showToast('✓ Notification sent! Check your WhatsApp.', 'success')
     }
   }
 
@@ -90,24 +101,45 @@ export function ListingCard({ item, idx, isOwner }) {
         <i className="fas fa-clock"></i> {timeAgo(item.timestamp)}
       </div>
       <div className="card-btns">
-        <a
-          className="btn-wa"
-          href={`https://wa.me/${posterPhone}?text=${waMsg}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => handleDealClick('direct')}
-        >
-          <i className="fab fa-whatsapp"></i> Direct Deal
-        </a>
-        <a
-          className="btn-admin"
-          href={`https://wa.me/${ADMIN_WHATSAPP}?text=${adminMsg}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => handleDealClick('admin')}
-        >
-          <i className="fas fa-shield-halved"></i> Admin Deal
-        </a>
+        {currentUser ? (
+          <>
+            <a
+              className="btn-wa"
+              href={`https://wa.me/${posterPhone}?text=${waMsg}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => handleDealClick('direct')}
+            >
+              <i className="fab fa-whatsapp"></i> Direct Deal
+            </a>
+            <a
+              className="btn-admin"
+              href={`https://wa.me/${ADMIN_WHATSAPP}?text=${adminMsg}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => handleDealClick('admin')}
+            >
+              <i className="fas fa-shield-halved"></i> Admin Deal
+            </a>
+          </>
+        ) : (
+          <>
+            <button
+              className="btn-wa"
+              onClick={() => handleDealClick('direct')}
+              style={{ textDecoration: 'none', display: 'inline-block', cursor: 'pointer' }}
+            >
+              <i className="fab fa-whatsapp"></i> Direct Deal
+            </button>
+            <button
+              className="btn-admin"
+              onClick={() => handleDealClick('admin')}
+              style={{ textDecoration: 'none', display: 'inline-block', cursor: 'pointer' }}
+            >
+              <i className="fas fa-shield-halved"></i> Admin Deal
+            </button>
+          </>
+        )}
         {isOwner && (
           <button className="btn-delete" onClick={handleDelete}>
             <i className="fas fa-trash"></i>

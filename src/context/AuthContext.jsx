@@ -21,9 +21,26 @@ export function AuthProvider({ children }) {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user)
       setLoading(false)
+      console.log('Auth state changed:', user ? `Logged in as ${user.email}` : 'Not logged in')
     })
     return unsubscribe
   }, [])
+
+  // Logout on tab close (if user enabled this setting)
+  useEffect(() => {
+    if (!currentUser) return
+
+    const handleBeforeUnload = (event) => {
+      const logoutOnClose = localStorage.getItem('logout_on_close')
+      if (logoutOnClose === 'true') {
+        // Logout when tab closes
+        firebaseSignOut(auth).catch(err => console.error('Logout error:', err))
+      }
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [currentUser])
 
   // Email/Password Sign Up
   const signup = async (email, password, phone = '') => {

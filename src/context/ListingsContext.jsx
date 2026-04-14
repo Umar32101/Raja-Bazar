@@ -25,6 +25,8 @@ const DEMO_LISTINGS = [
     user_id: 'demo', timestamp: null },
 ]
 
+const STORAGE_KEY = 'raja_bazar_listings'
+
 export function ListingsProvider({ children }) {
   const [listings, setListings] = useState([])
   const [loading, setLoading] = useState(true)
@@ -35,55 +37,87 @@ export function ListingsProvider({ children }) {
 
   async function loadListings() {
     try {
+      // Try to load from Firestore first
       const q = query(collection(db, 'listings'), orderBy('timestamp', 'desc'))
       const snap = await getDocs(q)
       const loaded = snap.docs.map(d => ({ id: d.id, ...d.data() }))
       setListings(loaded)
     } catch (e) {
-      // Firebase not configured yet — use demo listings
-      setListings([...DEMO_LISTINGS])
+      // Firestore not available - load from localStorage
+      const stored = localStorage.getItem(STORAGE_KEY)
+      if (stored) {
+        try {
+          setListings(JSON.parse(stored))
+        } catch {
+          // If localStorage is corrupted, use demo
+          setListings([...DEMO_LISTINGS])
+        }
+      } else {
+        // First time - use demo listings
+        setListings([...DEMO_LISTINGS])
+      }
     }
     setLoading(false)
   }
 
   const addListing = async (data) => {
     try {
+      // Try Firestore first
       const docRef = await addDoc(collection(db, 'listings'), {
         ...data,
         timestamp: serverTimestamp(),
         createdAt: new Date().toISOString()
       })
-      // Optimistically update UI with new listing
       const newListing = {
         id: docRef.id,
         ...data,
         timestamp: new Date(),
         createdAt: new Date().toISOString()
       }
-      setListings([newListing, ...listings])
+      const updatedListings = [newListing, ...listings]
+      setListings(updatedListings)
       return docRef.id
     } catch (err) {
       console.error('Firebase error:', err)
-      // Demo mode fallback
-      const newId = 'demo_' + Date.now()
+      // Fallback to localStorage
+      const newId = 'local_' + Date.now()
       const newListing = {
         id: newId,
         ...data,
         timestamp: new Date(),
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        source: 'local'
       }
-      setListings([newListing, ...listings])
+      const updatedListings = [newListing, ...listings]
+      setListings(updatedListings)
+      
+      // Save to localStorage
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedListings))
+      } catch (storageErr) {
+        console.error('localStorage error:', storageErr)
+      }
+      
       return newId
     }
   }
 
   const deleteListing = async (id) => {
     try {
+      // Try Firestore first
       await deleteDoc(doc(db, 'listings', id))
-      setListings(listings.filter(l => l.id !== id))
+      const updatedListings = listings.filter(l => l.id !== id)
+      setListings(updatedListings)
     } catch (e) {
-      // Demo mode
-      setListings(listings.filter(l => l.id !== id))
+      // Fallback to localStorage
+      const updatedListings = listings.filter(l => l.id !== id)
+      setListings(updatedListings)
+      
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedListings))
+      } catch (storageErr) {
+        console.error('localStorage error:', storageErr)
+      }
     }
   }
 

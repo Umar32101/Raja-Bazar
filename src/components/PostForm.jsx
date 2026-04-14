@@ -1,18 +1,16 @@
 import React, { useState } from 'react'
 import { useAuth } from '../hooks/useAuth'
 import { useListings } from '../hooks/useListings'
+import { useNavigate } from 'react-router-dom'
 
 export function PostForm({ onSuccess }) {
-  const { currentUser, login } = useAuth()
+  const { currentUser } = useAuth()
+  const navigate = useNavigate()
   const { addListing } = useListings()
   const [loading, setLoading] = useState(false)
 
-  const handleLoginClick = async () => {
-    try {
-      await login()
-    } catch (e) {
-      console.error('Login error:', e)
-    }
+  const handleLoginClick = () => {
+    navigate('/login')
   }
 
   const handleSubmit = async (e) => {
@@ -81,7 +79,7 @@ export function PostForm({ onSuccess }) {
           <i className="fas fa-user-lock"></i>
           <p>You need to be logged in to post an ad.</p>
           <button className="btn-primary" onClick={handleLoginClick}>
-            Login with Google
+            Sign In to Post
           </button>
         </div>
       </div>

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { ForgetPasswordModal } from '../components/ForgetPasswordModal'
 
 export function LoginPage() {
-  const { loginWithEmail, login } = useAuth()
+  const { loginWithEmail } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -37,19 +37,6 @@ export function LoginPage() {
   }
 }
 
-  const handleGoogleLogin = async () => {
-    setError('')
-    setLoading(true)
-
-    try {
-      await login()
-      navigate('/')
-    } catch (err) {
-      setError(err.message || 'Failed to sign in with Google')
-    } finally {
-      setLoading(false)
-    }
-  }
 
   return (
     <div className="auth-page">
@@ -100,18 +87,9 @@ export function LoginPage() {
             </div>
 
             <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? 'Signing in...' : 'login into account'}
+              {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
-
-          <div className="divider">
-            <span>OR</span>
-          </div>
-
-          <button className="btn-google" onClick={handleGoogleLogin} disabled={loading}>
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
-            Continue with Google
-          </button>
 
           <p className="auth-footer">
             Don't have an account? <a href="/signup">Sign up here</a>

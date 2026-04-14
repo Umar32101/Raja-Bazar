@@ -29,7 +29,9 @@ export function PostForm({ onSuccess }) {
     }
 
     if (!data.title || !data.price || !data.description) {
-      alert('Please fill all fields')
+      if (window.showToast) {
+        window.showToast('Please fill all fields', 'error')
+      }
       return
     }
 
@@ -37,9 +39,15 @@ export function PostForm({ onSuccess }) {
     try {
       await addListing(data)
       form.reset()
+      if (window.showToast) {
+        window.showToast('✓ Ad posted successfully!', 'success')
+      }
       if (onSuccess) onSuccess()
     } catch (err) {
       console.error('Submit error:', err)
+      if (window.showToast) {
+        window.showToast('Failed to post ad. Please try again.', 'error')
+      }
     } finally {
       setLoading(false)
     }

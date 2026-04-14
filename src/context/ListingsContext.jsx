@@ -50,14 +50,29 @@ export function ListingsProvider({ children }) {
     try {
       const docRef = await addDoc(collection(db, 'listings'), {
         ...data,
-        timestamp: serverTimestamp()
+        timestamp: serverTimestamp(),
+        createdAt: new Date().toISOString()
       })
-      setListings([{ id: docRef.id, ...data, timestamp: { toMillis: () => Date.now() } }, ...listings])
+      // Optimistically update UI with new listing
+      const newListing = {
+        id: docRef.id,
+        ...data,
+        timestamp: new Date(),
+        createdAt: new Date().toISOString()
+      }
+      setListings([newListing, ...listings])
       return docRef.id
     } catch (err) {
-      // Demo mode
+      console.error('Firebase error:', err)
+      // Demo mode fallback
       const newId = 'demo_' + Date.now()
-      setListings([{ id: newId, ...data, timestamp: { toMillis: () => Date.now() } }, ...listings])
+      const newListing = {
+        id: newId,
+        ...data,
+        timestamp: new Date(),
+        createdAt: new Date().toISOString()
+      }
+      setListings([newListing, ...listings])
       return newId
     }
   }

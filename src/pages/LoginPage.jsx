@@ -100,7 +100,7 @@ export function LoginPage() {
             </div>
 
             <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? 'Signing in...' : 'login into account'}
             </button>
           </form>
 

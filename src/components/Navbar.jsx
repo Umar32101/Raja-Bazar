@@ -7,6 +7,12 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const navigate = useNavigate()
 
+  // Extract username from email
+  const getUserName = () => {
+    if (!currentUser?.email) return ''
+    return currentUser.email.split('@')[0]
+  }
+
   const handleLogout = async () => {
     try {
       await logout()
@@ -33,9 +39,17 @@ export function Navbar() {
         <li><a href="#post-section">Post Ad</a></li>
         <li><a href="#how-it-works">How It Works</a></li>
       </ul>
+
+      {currentUser && (
+        <div className="user-section">
+          <span className="user-greeting">Welcome, <span className="username">{getUserName()}</span></span>
+        </div>
+      )}
+
       <button className="auth-btn auth-btn-desktop" onClick={currentUser ? handleLogout : handleLogin}>
-        {currentUser ? 'Logout' : 'Login'}
+        {currentUser ? '🚪 Logout' : 'Login'}
       </button>
+
       <button
         className="hamburger"
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -50,6 +64,11 @@ export function Navbar() {
           <a href="#marketplace" onClick={closeMobileMenu}>Marketplace</a>
           <a href="#post-section" onClick={closeMobileMenu}>Post Ad</a>
           <a href="#how-it-works" onClick={closeMobileMenu}>How It Works</a>
+          {currentUser && (
+            <div className="mobile-user-info">
+              Welcome, <span className="username">{getUserName()}</span>
+            </div>
+          )}
           <button
             className="auth-btn"
             onClick={() => {
@@ -58,11 +77,10 @@ export function Navbar() {
             }}
             style={{ marginTop: '8px' }}
           >
-            {currentUser ? 'Logout' : 'Login'}
+            {currentUser ? '🚪 Logout' : 'Login'}
           </button>
         </div>
       )}
     </nav>
   )
 }
-

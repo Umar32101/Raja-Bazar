@@ -91,6 +91,39 @@ nav {
 }
 .auth-btn:hover { background: var(--accent); color: var(--bg); }
 
+.user-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-right: 16px;
+}
+
+.user-greeting {
+  font-family: var(--font-head);
+  font-size: 0.9rem;
+  color: var(--text);
+  letter-spacing: 0.5px;
+}
+
+.username {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.mobile-user-info {
+  padding: 12px 8px;
+  color: var(--muted);
+  font-family: var(--font-head);
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+}
+
+.mobile-user-info .username {
+  color: var(--accent);
+  font-weight: 700;
+}
+
 .hamburger {
   display: none; flex-direction: column; gap: 5px;
   cursor: pointer; background: none; border: none;
@@ -133,6 +166,25 @@ nav {
 }
 
 .hero-content { position: relative; z-index: 1; max-width: 720px; }
+
+.hero-welcome {
+  text-align: center;
+  padding: 12px 20px;
+  background: rgba(0, 255, 136, 0.08);
+  border: 1px solid rgba(0, 255, 136, 0.25);
+  border-radius: 8px;
+  color: var(--sell);
+  font-family: var(--font-head);
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+  margin-bottom: 24px;
+  animation: slideDown 0.5s ease-out;
+}
+
+.welcome-name {
+  color: var(--accent);
+  font-weight: 700;
+}
 
 .hero-badge {
   display: inline-flex; align-items: center; gap: 8px;
@@ -784,6 +836,7 @@ footer {
   .nav-links { display: none; }
   .hamburger { display: flex; }
   .auth-btn-desktop { display: none; }
+  .user-section { display: none; }
   
   .login-modal {
     width: 95%;

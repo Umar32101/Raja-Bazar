@@ -6,6 +6,7 @@ export function SignupPage() {
   const { signup, loginWithEmail } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
@@ -16,8 +17,14 @@ export function SignupPage() {
     setError('')
     setLoading(true)
 
-    if (!email || !password || !confirmPassword) {
+    if (!email || !phone || !password || !confirmPassword) {
       setError('Please fill in all fields')
+      setLoading(false)
+      return
+    }
+
+    if (!/^\d{10,}$/.test(phone.replace(/\D/g, ''))) {
+      setError('Please enter a valid phone number')
       setLoading(false)
       return
     }
@@ -35,7 +42,11 @@ export function SignupPage() {
     }
 
     try {
-      await signup(email, password)
+      // Store phone in localStorage temporarily until user profile is created
+      const phoneData = { email, phone, createdAt: new Date().toISOString() }
+      localStorage.setItem(`user_phone_${email}`, JSON.stringify(phoneData))
+      
+      await signup(email, password, phone)
       // Auto-login after signup
       await loginWithEmail(email, password)
       navigate('/')
@@ -77,7 +88,22 @@ export function SignupPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={loading}
+                required
               />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="phone">Phone Number</label>
+              <input
+                type="tel"
+                id="phone"
+                placeholder="+92 300 1234567"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                disabled={loading}
+                required
+              />
+              <small>Your WhatsApp number for buyer contacts</small>
             </div>
 
             <div className="form-group">
@@ -89,6 +115,7 @@ export function SignupPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
+                required
               />
               <small>Password must be at least 6 characters</small>
             </div>
@@ -102,6 +129,7 @@ export function SignupPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 disabled={loading}
+                required
               />
             </div>
 

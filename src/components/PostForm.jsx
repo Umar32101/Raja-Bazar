@@ -19,6 +19,25 @@ export function PostForm({ onSuccess }) {
     e.preventDefault()
     const form = e.target
 
+    // Get poster's phone from localStorage
+    const userProfile = localStorage.getItem(`user_${currentUser.uid}`)
+    let posterPhone = ''
+    if (userProfile) {
+      try {
+        const profile = JSON.parse(userProfile)
+        posterPhone = profile.phone || ''
+      } catch (err) {
+        console.error('Error parsing user profile:', err)
+      }
+    }
+
+    if (!posterPhone) {
+      if (window.showToast) {
+        window.showToast('Please complete your profile with phone number', 'error')
+      }
+      return
+    }
+
     const data = {
       type: form.type.value,
       category: form.category.value,
@@ -26,6 +45,8 @@ export function PostForm({ onSuccess }) {
       price: form.price.value.trim(),
       description: form.description.value.trim(),
       user_id: currentUser.uid,
+      poster_email: currentUser.email,
+      poster_phone: posterPhone,
     }
 
     if (!data.title || !data.price || !data.description) {

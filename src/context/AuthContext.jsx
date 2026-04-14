@@ -26,10 +26,22 @@ export function AuthProvider({ children }) {
   }, [])
 
   // Email/Password Sign Up
-  const signup = async (email, password) => {
+  const signup = async (email, password, phone = '') => {
     try {
       console.log('Attempting signup with email:', email)
       const result = await createUserWithEmailAndPassword(auth, email, password)
+      
+      // Store phone number in localStorage for user profile
+      if (phone) {
+        const userProfile = {
+          uid: result.user.uid,
+          email: result.user.email,
+          phone: phone,
+          createdAt: new Date().toISOString()
+        }
+        localStorage.setItem(`user_${result.user.uid}`, JSON.stringify(userProfile))
+      }
+      
       console.log('Signup successful:', result.user.email)
       return result.user
     } catch (error) {

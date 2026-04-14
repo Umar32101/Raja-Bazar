@@ -19,7 +19,7 @@ function escapeHtml(text) {
 }
 
 export function ListingCard({ item, idx, isOwner }) {
-  const { ADMIN_WHATSAPP } = useAuth()
+  const { ADMIN_WHATSAPP, currentUser } = useAuth()
   const { deleteListing } = useListings()
 
   const handleDelete = async () => {
@@ -31,6 +31,41 @@ export function ListingCard({ item, idx, isOwner }) {
     }
   }
 
+  const handleDealClick = (dealType) => {
+    // Log deal notification for admin
+    const notification = {
+      id: 'deal_' + Date.now(),
+      buyerId: currentUser?.uid || 'guest',
+      buyerEmail: currentUser?.email || 'guest',
+      sellerId: item.user_id,
+      sellerEmail: item.poster_email,
+      sellerPhone: item.poster_phone,
+      listingId: item.id,
+      listingTitle: item.title,
+      price: item.price,
+      dealType: dealType, // 'direct' or 'admin'
+      timestamp: new Date().toISOString(),
+      status: 'initiated'
+    }
+    
+    // Store notification in localStorage for admin dashboard
+    try {
+      const notifications = JSON.parse(localStorage.getItem('admin_deal_notifications') || '[]')
+      notifications.unshift(notification)
+      // Keep last 100 notifications
+      localStorage.setItem('admin_deal_notifications', JSON.stringify(notifications.slice(0, 100)))
+    } catch (err) {
+      console.error('Error saving notification:', err)
+    }
+
+    // Show confirmation
+    if (window.showToast) {
+      window.showToast('✓ Admin notified of your deal request', 'success')
+    }
+  }
+
+  // Get poster's phone or fallback to admin number
+  const posterPhone = item.poster_phone ? item.poster_phone.replace(/\D/g, '') : ADMIN_WHATSAPP
   const waMsg = encodeURIComponent(`Hi! I saw your listing "${item.title || item.category}" on Raja Bazar. Is it still available?`)
   const adminMsg = encodeURIComponent(`Hi Admin, I want to start a safe deal for: "${item.title || item.category}" — Price: ${item.price}`)
 
@@ -57,17 +92,19 @@ export function ListingCard({ item, idx, isOwner }) {
       <div className="card-btns">
         <a
           className="btn-wa"
-          href={`https://wa.me/${ADMIN_WHATSAPP}?text=${waMsg}`}
+          href={`https://wa.me/${posterPhone}?text=${waMsg}`}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => handleDealClick('direct')}
         >
-          <i className="fab fa-whatsapp"></i> Contact Seller
+          <i className="fab fa-whatsapp"></i> Direct Deal
         </a>
         <a
           className="btn-admin"
           href={`https://wa.me/${ADMIN_WHATSAPP}?text=${adminMsg}`}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => handleDealClick('admin')}
         >
           <i className="fas fa-shield-halved"></i> Admin Deal
         </a>

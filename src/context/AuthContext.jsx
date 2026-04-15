@@ -9,6 +9,7 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail
 } from 'firebase/auth'
+import { collection, doc, setDoc, getDoc } from 'firebase/firestore'
 
 export const AuthContext = createContext()
 
@@ -48,14 +49,21 @@ export function AuthProvider({ children }) {
       console.log('Attempting signup with email:', email)
       const result = await createUserWithEmailAndPassword(auth, email, password)
       
-      // Store phone number in localStorage for user profile
-      if (phone) {
-        const userProfile = {
-          uid: result.user.uid,
-          email: result.user.email,
-          phone: phone,
-          createdAt: new Date().toISOString()
-        }
+      // Save user profile to Firestore
+      const userProfile = {
+        uid: result.user.uid,
+        email: result.user.email,
+        phone: phone || '',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+      
+      try {
+        await setDoc(doc(db, 'users', result.user.uid), userProfile)
+        console.log('✅ User profile saved to Firestore')
+      } catch (dbErr) {
+        console.warn('⚠️ Failed to save to Firestore, using localStorage:', dbErr.message)
+        // Fallback: save to localStorage
         localStorage.setItem(`user_${result.user.uid}`, JSON.stringify(userProfile))
       }
       

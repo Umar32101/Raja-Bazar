@@ -2,6 +2,7 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useListings } from '../hooks/useListings'
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
 
 function timeAgo(ts) {
   if (!ts) return 'Recently posted'
@@ -21,7 +22,7 @@ function escapeHtml(text) {
 
 export function ListingCard({ item, idx, isOwner }) {
   const navigate = useNavigate()
-  const { ADMIN_WHATSAPP, currentUser } = useAuth()
+  const { ADMIN_WHATSAPP, currentUser, db } = useAuth()
   const { deleteListing } = useListings()
 
   const handleDelete = async () => {
@@ -43,9 +44,8 @@ export function ListingCard({ item, idx, isOwner }) {
       return
     }
 
-    // Log deal notification for admin
+    // Create deal notification object
     const notification = {
-      id: 'deal_' + Date.now(),
       buyerId: currentUser.uid,
       buyerEmail: currentUser.email,
       sellerId: item.user_id,
@@ -59,19 +59,41 @@ export function ListingCard({ item, idx, isOwner }) {
       status: 'initiated'
     }
     
-    // Store notification in localStorage for admin dashboard
-    try {
-      const notifications = JSON.parse(localStorage.getItem('admin_deal_notifications') || '[]')
-      notifications.unshift(notification)
-      // Keep last 100 notifications
-      localStorage.setItem('admin_deal_notifications', JSON.stringify(notifications.slice(0, 100)))
-    } catch (err) {
-      console.error('Error saving notification:', err)
+    // Save to Firestore (PRIMARY)
+    if (db) {
+      (async () => {
+        try {
+          const docRef = await addDoc(collection(db, 'deal_notifications'), {
+            ...notification,
+            timestamp: serverTimestamp()
+          })
+          console.log('✅ Deal notification saved to Firestore:', docRef.id)
+        } catch (err) {
+          console.warn('⚠️ Firestore failed, using localStorage backup:', err.message)
+          // Fallback to localStorage
+          try {
+            const notifications = JSON.parse(localStorage.getItem('admin_deal_notifications') || '[]')
+            notifications.unshift(notification)
+            localStorage.setItem('admin_deal_notifications', JSON.stringify(notifications.slice(0, 100)))
+          } catch (storageErr) {
+            console.error('Both Firestore and localStorage failed:', storageErr)
+          }
+        }
+      })()
+    } else {
+      // If db not available, use localStorage
+      try {
+        const notifications = JSON.parse(localStorage.getItem('admin_deal_notifications') || '[]')
+        notifications.unshift(notification)
+        localStorage.setItem('admin_deal_notifications', JSON.stringify(notifications.slice(0, 100)))
+      } catch (err) {
+        console.error('Error saving notification:', err)
+      }
     }
 
     // Show confirmation
     if (window.showToast) {
-      window.showToast('✓ Notification sent! Check your WhatsApp.', 'success')
+      window.showToast('✓ Deal request sent! Admin will contact you soon.', 'success')
     }
   }
 

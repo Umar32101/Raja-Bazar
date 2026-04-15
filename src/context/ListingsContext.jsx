@@ -37,102 +37,89 @@ export function ListingsProvider({ children }) {
 
   async function loadListings() {
     try {
-      // Try to load from Firestore with a timeout
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Firestore timeout')), 3000)
-      )
+      // Load from Firestore (Cloud - PRIMARY)
       const q = query(collection(db, 'listings'), orderBy('timestamp', 'desc'))
-      const firestorePromise = getDocs(q)
-      const snap = await Promise.race([firestorePromise, timeoutPromise])
+      const snap = await getDocs(q)
       const loaded = snap.docs.map(d => ({ id: d.id, ...d.data() }))
       setListings(loaded)
-    } catch (e) {
-      // Firestore not available or timed out - load from localStorage
+      console.log('✅ Loaded', loaded.length, 'listings from Firestore')
+    } catch (error) {
+      console.log('⚠️  Firestore unavailable, loading from localStorage:', error.message)
+      // Fallback to localStorage if Firestore fails
       const stored = localStorage.getItem(STORAGE_KEY)
       if (stored) {
         try {
-          setListings(JSON.parse(stored))
+          const backupListings = JSON.parse(stored)
+          setListings(backupListings)
+          console.log('✅ Loaded', backupListings.length, 'listings from localStorage backup')
         } catch {
-          // If localStorage is corrupted, use demo
           setListings([...DEMO_LISTINGS])
         }
       } else {
-        // First time - use demo listings
         setListings([...DEMO_LISTINGS])
+        console.log('ℹ️  Using demo listings')
       }
     }
     setLoading(false)
   }
 
   const addListing = async (data) => {
-    // Create new listing object immediately
-    const newId = 'local_' + Date.now()
-    const newListing = {
-      id: newId,
-      ...data,
-      timestamp: new Date(),
-      createdAt: new Date().toISOString(),
-      source: 'local'
-    }
-
-    // Update UI immediately with localStorage
-    const updatedListings = [newListing, ...listings]
-    setListings(updatedListings)
-
-    // Save to localStorage synchronously
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedListings))
-    } catch (storageErr) {
-      console.error('localStorage error:', storageErr)
-    }
+      // Save to Firestore FIRST (PRIMARY)
+      const docRef = await addDoc(collection(db, 'listings'), {
+        ...data,
+        timestamp: serverTimestamp(),
+        createdAt: new Date().toISOString()
+      })
+      
+      // Create listing object with Firestore document ID
+      const newListing = {
+        id: docRef.id,
+        ...data,
+        timestamp: new Date(),
+        createdAt: new Date().toISOString()
+      }
 
-    // Try to sync to Firestore in background (non-blocking)
-    if (db) {
-      setTimeout(() => {
-        try {
-          addDoc(collection(db, 'listings'), {
-            ...data,
-            timestamp: serverTimestamp(),
-            createdAt: new Date().toISOString()
-          }).then(docRef => {
-            console.log('Firestore sync successful:', docRef.id)
-          }).catch(err => {
-            console.log('Firestore sync failed (using localStorage):', err.message)
-          })
-        } catch (err) {
-          console.log('Firestore unavailable, using localStorage only')
-        }
-      }, 0)
-    }
+      // Update UI
+      const updatedListings = [newListing, ...listings]
+      setListings(updatedListings)
 
-    return newId
+      // Also backup to localStorage
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedListings))
+      } catch (storageErr) {
+        console.warn('localStorage backup failed:', storageErr)
+      }
+
+      console.log('✅ Listing saved to Firestore:', docRef.id)
+      return docRef.id
+    } catch (error) {
+      console.error('❌ Failed to add listing:', error.message)
+      throw error
+    }
   }
 
   const deleteListing = async (id) => {
-    // Delete from UI immediately
-    const updatedListings = listings.filter(l => l.id !== id)
-    setListings(updatedListings)
-
-    // Save to localStorage
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedListings))
-    } catch (storageErr) {
-      console.error('localStorage error:', storageErr)
-    }
+      // Delete from Firestore FIRST (PRIMARY)
+      if (!id.startsWith('local_')) {
+        await deleteDoc(doc(db, 'listings', id))
+        console.log('✅ Listing deleted from Firestore:', id)
+      }
 
-    // Try to delete from Firestore in background (non-blocking)
-    if (db && !id.startsWith('local_')) {
-      setTimeout(() => {
-        try {
-          deleteDoc(doc(db, 'listings', id)).then(() => {
-            console.log('Firestore delete successful:', id)
-          }).catch(err => {
-            console.log('Firestore delete failed (using localStorage):', err.message)
-          })
-        } catch (err) {
-          console.log('Firestore unavailable, using localStorage only')
-        }
-      }, 0)
+      // Delete from UI
+      const updatedListings = listings.filter(l => l.id !== id)
+      setListings(updatedListings)
+
+      // Also update localStorage backup
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedListings))
+      } catch (storageErr) {
+        console.warn('localStorage backup failed:', storageErr)
+      }
+    } catch (error) {
+      console.error('❌ Failed to delete listing:', error.message)
+      throw error
     }
   }
 

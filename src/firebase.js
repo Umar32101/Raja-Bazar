@@ -15,4 +15,4 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig)
 export const auth = getAuth(app)
 export const db = getFirestore(app)
-export const ADMIN_WHATSAPP = import.meta.env.VITE_ADMIN_WHATSAPP || "923111211489"
+export const ADMIN_WHATSAPP = import.meta.env.VITE_ADMIN_WHATSAPP || "923104408000"

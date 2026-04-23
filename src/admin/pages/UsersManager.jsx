@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import {
-  collection, getDocs, updateDoc, doc, query, orderBy
+  collection, getDocs, updateDoc, doc
 } from 'firebase/firestore'
 import { db } from '../../firebase'
 import AdminLayout from '../components/AdminLayout'
@@ -18,7 +18,6 @@ export default function UsersManager() {
     setLoading(true)
     try {
       const snap = await getDocs(collection(db, 'users'))
-      // Also get post counts per user
       const postsSnap = await getDocs(collection(db, 'listings'))
       const postCountMap = {}
       postsSnap.docs.forEach(d => {
@@ -30,7 +29,6 @@ export default function UsersManager() {
         postCount: postCountMap[d.id] || 0,
       })))
     } catch {
-      // Demo
       setUsers([
         { id: 'u1', displayName: 'Ahmed Khan', email: 'ahmed@gmail.com', banned: false, postCount: 5, createdAt: null },
         { id: 'u2', displayName: 'Sara Malik', email: 'sara@gmail.com', banned: false, postCount: 2, createdAt: null },
@@ -81,8 +79,8 @@ export default function UsersManager() {
           <div style={styles.filters}>
             {[
               { key: 'all', label: 'All Users' },
-              { key: 'active', label: '✅ Active' },
-              { key: 'banned', label: '🚫 Banned' },
+              { key: 'active', label: 'Active' },
+              { key: 'banned', label: 'Banned' },
             ].map(f => (
               <button key={f.key}
                 style={{ ...styles.filterBtn, ...(filter === f.key ? styles.filterBtnActive : {}) }}
@@ -92,14 +90,14 @@ export default function UsersManager() {
           </div>
           <input
             style={styles.searchInput}
-            placeholder="🔍 Search by name or email…"
+            placeholder="Search by name or email..."
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
         </div>
 
         {loading ? (
-          <div style={styles.loader}>Loading users…</div>
+          <div style={styles.loader}>Loading users...</div>
         ) : filtered.length === 0 ? (
           <div style={styles.empty}>No users found</div>
         ) : (
@@ -119,10 +117,10 @@ export default function UsersManager() {
                   </div>
                   <div>
                     <div style={styles.userName}>{user.displayName || 'Unknown'}</div>
-                    <div style={styles.userId}>uid: {user.id.substring(0, 8)}…</div>
+                    <div style={styles.userId}>uid: {user.id.substring(0, 8)}...</div>
                   </div>
                 </div>
-                <div style={styles.emailCell}>{user.email || '—'}</div>
+                <div style={styles.emailCell}>{user.email || '-'}</div>
                 <div style={styles.postCount}>
                   <span style={styles.postNum}>{user.postCount}</span>
                   <span style={styles.postLabel}>posts</span>
@@ -133,7 +131,7 @@ export default function UsersManager() {
                   color: user.banned ? '#ff4444' : '#00ff88',
                   border: `1px solid ${user.banned ? 'rgba(255,68,68,0.3)' : 'rgba(0,255,136,0.3)'}`,
                 }}>
-                  {user.banned ? '🚫 Banned' : '✅ Active'}
+                  {user.banned ? 'Banned' : 'Active'}
                 </span>
                 <button
                   style={{
@@ -142,7 +140,7 @@ export default function UsersManager() {
                   }}
                   onClick={() => toggleBan(user)}
                 >
-                  {user.banned ? '✅ Unban' : '🚫 Ban'}
+                  {user.banned ? 'Unban' : 'Ban'}
                 </button>
               </div>
             ))}
@@ -150,7 +148,7 @@ export default function UsersManager() {
         )}
 
         <div style={styles.helpNote}>
-          ℹ️ Banned users cannot post new listings. Their existing posts remain visible until manually deleted.
+          Banned users cannot post new listings. Their existing posts remain visible until manually deleted.
         </div>
       </div>
     </AdminLayout>

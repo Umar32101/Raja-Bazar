@@ -5,7 +5,7 @@ import {
   onAuthStateChanged
 } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
-import { auth, db } from '../firebase'
+import { auth, db } from '../../firebase'
 
 export const AdminAuthContext = createContext(null)
 
@@ -18,7 +18,6 @@ export function AdminAuthProvider({ children }) {
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // Check if this user is an admin in Firestore
         try {
           const snap = await getDoc(doc(db, 'admins', user.uid))
           if (snap.exists() && snap.data().isadmin === true) {

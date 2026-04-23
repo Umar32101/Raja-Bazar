@@ -29,7 +29,7 @@ export default function AdminLoginPage() {
       <div style={styles.glow} />
       <div style={styles.card}>
         <div style={styles.logoWrap}>
-          <span style={styles.logoIcon}>⚔</span>
+          <span style={styles.logoIcon}>âš”</span>
           <span style={styles.logoText}>Raja <span style={styles.logoGold}>Bazar</span></span>
         </div>
         <div style={styles.badge}>ADMIN PORTAL</div>
@@ -58,12 +58,12 @@ export default function AdminLoginPage() {
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
               required
             />
           </div>
           <button style={{ ...styles.btn, opacity: loading ? 0.7 : 1 }} type="submit" disabled={loading}>
-            {loading ? 'Verifying…' : '🔐 Login as Admin'}
+            {loading ? 'Verifyingâ€¦' : 'ðŸ” Login as Admin'}
           </button>
         </form>
 

@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react'
 import {
-  collection, getDocs, deleteDoc, doc, query, orderBy, Timestamp, where
+  collection, getDocs, deleteDoc, doc, query, orderBy, Timestamp
 } from 'firebase/firestore'
 import { db } from '../../firebase'
 import AdminLayout from '../components/AdminLayout'
 
 const PLANS = [
-  { hours: 1,  label: '1 Hour',  price: 'Rs. 50',   color: '#5a7080' },
-  { hours: 3,  label: '3 Hours', price: 'Rs. 120',  color: '#00e5ff' },
-  { hours: 24, label: '24 Hours',price: 'Rs. 500',  color: '#a78bfa' },
-  { hours: 72, label: '3 Days',  price: 'Rs. 1200', color: '#ffd700' },
+  { hours: 1, label: '1 Hour', price: 'Rs. 50', color: '#5a7080' },
+  { hours: 3, label: '3 Hours', price: 'Rs. 120', color: '#00e5ff' },
+  { hours: 24, label: '24 Hours', price: 'Rs. 500', color: '#a78bfa' },
+  { hours: 72, label: '3 Days', price: 'Rs. 1200', color: '#ffd700' },
 ]
 
 function timeLeft(expiresAt) {
@@ -35,8 +35,6 @@ export default function PinnedPostsManager() {
       const snap = await getDocs(query(collection(db, 'pinnedPosts'), orderBy('pinnedAt', 'desc')))
       setPins(snap.docs.map(d => ({ id: d.id, ...d.data() })))
     } catch {
-      // Demo
-      const now = Timestamp.now()
       setPins([
         { id: 'p1', postTitle: '32K POP Available', postId: 'post1', hours: 3, paidPlan: '3hr', expiresAt: { toMillis: () => Date.now() + 7200000 }, pinnedAt: null },
         { id: 'p2', postTitle: 'Need 600 UC', postId: 'post2', hours: 24, paidPlan: '24hr', expiresAt: { toMillis: () => Date.now() + 82000000 }, pinnedAt: null },
@@ -76,7 +74,6 @@ export default function PinnedPostsManager() {
 
         {msg && <div style={styles.toast}>{msg}</div>}
 
-        {/* Plans overview */}
         <div style={styles.plansRow}>
           {PLANS.map(plan => (
             <div key={plan.hours} style={{ ...styles.planCard, borderColor: planRevenue[plan.hours] > 0 ? plan.color + '55' : '#1e2d3d' }}>
@@ -90,12 +87,12 @@ export default function PinnedPostsManager() {
         </div>
 
         {loading ? (
-          <div style={styles.loader}>Loading pins…</div>
+          <div style={styles.loader}>Loading pins...</div>
         ) : (
           <>
             {active.length > 0 && (
               <div style={styles.section}>
-                <h2 style={styles.sectionTitle}>📌 Active Pins ({active.length})</h2>
+                <h2 style={styles.sectionTitle}>Active Pins ({active.length})</h2>
                 <div style={styles.pinsList}>
                   {active.map(pin => {
                     const plan = PLANS.find(p => p.hours === pin.hours) || PLANS[0]
@@ -109,7 +106,7 @@ export default function PinnedPostsManager() {
                             <div>
                               <div style={styles.pinTitle}>{pin.postTitle}</div>
                               <div style={styles.pinMeta}>
-                                Post ID: {pin.postId?.substring(0, 12)}…
+                                Post ID: {pin.postId?.substring(0, 12)}...
                               </div>
                             </div>
                             <div style={styles.pinRight}>
@@ -117,7 +114,7 @@ export default function PinnedPostsManager() {
                                 {plan.label} · {plan.price}
                               </span>
                               <div style={{ ...styles.timeLeft, color: ms < 1800000 ? '#ff4444' : '#00ff88' }}>
-                                ⏱ {timeLeft(pin.expiresAt)}
+                                {timeLeft(pin.expiresAt)}
                               </div>
                             </div>
                           </div>
@@ -142,7 +139,7 @@ export default function PinnedPostsManager() {
 
             {expired.length > 0 && (
               <div style={styles.section}>
-                <h2 style={{ ...styles.sectionTitle, color: '#5a7080' }}>🕰 Expired Pins ({expired.length})</h2>
+                <h2 style={{ ...styles.sectionTitle, color: '#5a7080' }}>Expired Pins ({expired.length})</h2>
                 <div style={styles.pinsList}>
                   {expired.map(pin => (
                     <div key={pin.id} style={{ ...styles.pinCard, opacity: 0.5 }}>
@@ -151,7 +148,7 @@ export default function PinnedPostsManager() {
                         <div style={styles.pinTop}>
                           <div>
                             <div style={styles.pinTitle}>{pin.postTitle}</div>
-                            <div style={{ ...styles.timeLeft, color: '#ff4444' }}>⏱ Expired</div>
+                            <div style={{ ...styles.timeLeft, color: '#ff4444' }}>Expired</div>
                           </div>
                           <button style={styles.removeBtn} onClick={() => removePin(pin.id)}>
                             Delete
@@ -173,7 +170,7 @@ export default function PinnedPostsManager() {
         )}
 
         <div style={styles.helpNote}>
-          💡 To pin a post, go to <strong>Posts Manager</strong> → find any post → click the 📌 pin button.
+          To pin a post, go to <strong>Posts Manager</strong> and click the pin button on a listing.
         </div>
       </div>
     </AdminLayout>

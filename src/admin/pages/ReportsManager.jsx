@@ -5,8 +5,6 @@ import {
 import { db } from '../../firebase'
 import AdminLayout from '../components/AdminLayout'
 
-const REASONS = ['Spam', 'Fake price', 'Scam', 'Inappropriate', 'Duplicate', 'Other']
-
 export default function ReportsManager() {
   const [reports, setReports] = useState([])
   const [loading, setLoading] = useState(true)
@@ -31,7 +29,6 @@ export default function ReportsManager() {
   }
 
   async function resolveReport(id, action) {
-    // action: 'dismiss' | 'delete_post'
     try {
       await updateDoc(doc(db, 'reports', id), { status: 'resolved', action, resolvedAt: Timestamp.now() })
       if (action === 'delete_post') {
@@ -65,8 +62,8 @@ export default function ReportsManager() {
 
         <div style={styles.toolbar}>
           {[
-            { key: 'pending', label: '⏳ Pending' },
-            { key: 'resolved', label: '✅ Resolved' },
+            { key: 'pending', label: 'Pending' },
+            { key: 'resolved', label: 'Resolved' },
             { key: 'all', label: 'All' },
           ].map(f => (
             <button key={f.key}
@@ -77,10 +74,10 @@ export default function ReportsManager() {
         </div>
 
         {loading ? (
-          <div style={styles.loader}>Loading reports…</div>
+          <div style={styles.loader}>Loading reports...</div>
         ) : filtered.length === 0 ? (
           <div style={styles.empty}>
-            {filter === 'pending' ? '🎉 No pending reports!' : 'No reports found'}
+            {filter === 'pending' ? 'No pending reports.' : 'No reports found'}
           </div>
         ) : (
           <div style={styles.reportsList}>
@@ -90,7 +87,7 @@ export default function ReportsManager() {
                   <div>
                     <div style={styles.reportTitle}>"{report.postTitle}"</div>
                     <div style={styles.reportMeta}>
-                      Post ID: {report.postId?.substring(0, 12)}… · Reported by: {report.reportedBy}
+                      Post ID: {report.postId?.substring(0, 12)}... · Reported by: {report.reportedBy}
                     </div>
                   </div>
                   <span style={{
@@ -99,7 +96,7 @@ export default function ReportsManager() {
                     color: report.status === 'pending' ? '#ffd700' : '#00ff88',
                     border: `1px solid ${report.status === 'pending' ? 'rgba(255,215,0,0.3)' : 'rgba(0,255,136,0.3)'}`,
                   }}>
-                    {report.status === 'pending' ? '⏳ Pending' : '✅ Resolved'}
+                    {report.status === 'pending' ? 'Pending' : 'Resolved'}
                   </span>
                 </div>
 
@@ -111,17 +108,17 @@ export default function ReportsManager() {
                 {report.status === 'pending' && (
                   <div style={styles.reportActions}>
                     <button style={styles.btnDismiss} onClick={() => resolveReport(report.id, 'dismiss')}>
-                      👁 Dismiss (Post is fine)
+                      Dismiss
                     </button>
                     <button style={styles.btnDelete} onClick={() => resolveReport(report.id, 'delete_post')}>
-                      🗑 Delete Post & Resolve
+                      Delete Post & Resolve
                     </button>
                   </div>
                 )}
 
                 {report.status === 'resolved' && (
                   <div style={styles.resolvedNote}>
-                    ✅ {report.action === 'delete_post' ? 'Post was deleted' : 'Report was dismissed'}
+                    {report.action === 'delete_post' ? 'Post was deleted' : 'Report was dismissed'}
                   </div>
                 )}
               </div>

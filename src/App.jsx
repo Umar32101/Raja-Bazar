@@ -1,14 +1,19 @@
 import React, { useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
-import { AdminAuthProvider } from './context/AdminAuthContext'
+import { AdminAuthProvider } from './admin/context/AdminAuthContext'
 import { ListingsProvider } from './context/ListingsContext'
 import { useAuth } from './hooks/useAuth'
-import { useAdminAuth } from './hooks/useAdminAuth'
+import { useAdminAuth } from './admin/hooks/useAdminAuth'
 import { LoginPage } from './pages/LoginPage'
 import { SignupPage } from './pages/SignupPage'
-import AdminLoginPage from './pages/AdminLoginPage'
-import AdminDashboard from './pages/AdminDashboard'
+import AdminLoginPage from './admin/pages/AdminLoginPage'
+import AdminDashboard from './admin/pages/AdminDashboard'
+import UsersManager from './admin/pages/UsersManager'
+import ReportsManager from './admin/pages/ReportsManager'
+import PostsManager from './admin/pages/PostsManager'
+import PinnedPostsManager from './admin/pages/PinnedPostsManager'
+import DealsManager from './admin/pages/DealsManager'
 import { Navbar } from './components/Navbar'
 import { Hero } from './components/Hero'
 import { Marketplace } from './components/Marketplace'
@@ -67,6 +72,46 @@ function AppContent() {
         element={
           <ProtectedAdminRoute>
             <AdminDashboard />
+          </ProtectedAdminRoute>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <ProtectedAdminRoute>
+            <UsersManager />
+          </ProtectedAdminRoute>
+        }
+      />
+      <Route
+        path="/admin/reports"
+        element={
+          <ProtectedAdminRoute>
+            <ReportsManager />
+          </ProtectedAdminRoute>
+        }
+      />
+      <Route
+        path="/admin/posts"
+        element={
+          <ProtectedAdminRoute>
+            <PostsManager />
+          </ProtectedAdminRoute>
+        }
+      />
+      <Route
+        path="/admin/pinned"
+        element={
+          <ProtectedAdminRoute>
+            <PinnedPostsManager />
+          </ProtectedAdminRoute>
+        }
+      />
+      <Route
+        path="/admin/deals"
+        element={
+          <ProtectedAdminRoute>
+            <DealsManager />
           </ProtectedAdminRoute>
         }
       />

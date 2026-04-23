@@ -4,6 +4,11 @@ import { useAdminAuth } from '../hooks/useAdminAuth'
 
 const navItems = [
   { to: '/admin/dashboard', label: 'Dashboard' },
+  { to: '/admin/users', label: 'Users' },
+  { to: '/admin/reports', label: 'Reports' },
+  { to: '/admin/posts', label: 'Posts' },
+  { to: '/admin/pinned', label: 'Pinned Ads' },
+  { to: '/admin/deals', label: 'Deals' },
 ]
 
 export default function AdminLayout({ children }) {

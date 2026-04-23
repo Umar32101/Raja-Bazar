@@ -5,20 +5,20 @@ import {
 } from 'firebase/firestore'
 import { db, ADMIN_WHATSAPP } from '../../firebase'
 import AdminLayout from '../components/AdminLayout'
-import { useAdminAuth } from '../context/AdminAuthContext'
+import { useAdminAuth } from '../hooks/useAdminAuth'
 
 const STATUS_COLORS = {
-  pending:    { bg: 'rgba(255,215,0,0.12)',  color: '#ffd700', border: 'rgba(255,215,0,0.3)' },
-  inprogress: { bg: 'rgba(0,229,255,0.12)',  color: '#00e5ff', border: 'rgba(0,229,255,0.3)' },
-  completed:  { bg: 'rgba(0,255,136,0.12)',  color: '#00ff88', border: 'rgba(0,255,136,0.3)' },
-  cancelled:  { bg: 'rgba(255,68,68,0.12)',  color: '#ff4444', border: 'rgba(255,68,68,0.3)' },
+  pending: { bg: 'rgba(255,215,0,0.12)', color: '#ffd700', border: 'rgba(255,215,0,0.3)' },
+  inprogress: { bg: 'rgba(0,229,255,0.12)', color: '#00e5ff', border: 'rgba(0,229,255,0.3)' },
+  completed: { bg: 'rgba(0,255,136,0.12)', color: '#00ff88', border: 'rgba(0,255,136,0.3)' },
+  cancelled: { bg: 'rgba(255,68,68,0.12)', color: '#ff4444', border: 'rgba(255,68,68,0.3)' },
 }
 
 const STATUS_LABELS = {
-  pending: '⏳ Pending',
-  inprogress: '🔄 In Progress',
-  completed: '✅ Completed',
-  cancelled: '❌ Cancelled',
+  pending: 'Pending',
+  inprogress: 'In Progress',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
 }
 
 export default function DealsManager() {
@@ -41,7 +41,6 @@ export default function DealsManager() {
       const snap = await getDocs(q)
       setDeals(snap.docs.map(d => ({ id: d.id, ...d.data() })))
     } catch {
-      // Demo
       setDeals([
         { id: 'd1', buyerName: 'Ahmed K', sellerName: 'Sara M', item: '32K POP', amount: '500 PKR', status: 'pending', notes: '', adminId: 'admin1', createdAt: null },
         { id: 'd2', buyerName: 'Bilal R', sellerName: 'Usman T', item: '600 UC', amount: '1200 PKR', status: 'inprogress', notes: 'Buyer confirmed payment', adminId: 'admin1', createdAt: null },
@@ -101,7 +100,7 @@ export default function DealsManager() {
   const filtered = deals.filter(d => filter === 'all' || d.status === filter)
 
   const waLink = (deal) => {
-    const text = encodeURIComponent(`🤝 Raja Bazar Deal Update\n\nItem: ${deal.item}\nBuyer: ${deal.buyerName}\nSeller: ${deal.sellerName}\nAmount: ${deal.amount}\nStatus: ${STATUS_LABELS[deal.status] || deal.status}`)
+    const text = encodeURIComponent(`Raja Bazar Deal Update\n\nItem: ${deal.item}\nBuyer: ${deal.buyerName}\nSeller: ${deal.sellerName}\nAmount: ${deal.amount}\nStatus: ${STATUS_LABELS[deal.status] || deal.status}`)
     return `https://wa.me/${ADMIN_WHATSAPP}?text=${text}`
   }
 
@@ -120,7 +119,6 @@ export default function DealsManager() {
 
         {msg && <div style={styles.toast}>{msg}</div>}
 
-        {/* Status summary */}
         <div style={styles.summaryRow}>
           {Object.entries(STATUS_LABELS).map(([key, label]) => (
             <button
@@ -137,7 +135,7 @@ export default function DealsManager() {
         </div>
 
         {loading ? (
-          <div style={styles.loader}>Loading deals…</div>
+          <div style={styles.loader}>Loading deals...</div>
         ) : filtered.length === 0 ? (
           <div style={styles.empty}>No deals found</div>
         ) : (
@@ -170,36 +168,35 @@ export default function DealsManager() {
                   </div>
 
                   {deal.notes && (
-                    <div style={styles.noteBox}>📝 {deal.notes}</div>
+                    <div style={styles.noteBox}>{deal.notes}</div>
                   )}
 
                   <div style={styles.dealFooter}>
-                    {/* Status actions */}
                     <div style={styles.statusActions}>
                       {deal.status !== 'inprogress' && deal.status !== 'completed' && (
                         <button style={styles.btnProgress} onClick={() => updateStatus(deal.id, 'inprogress')}>
-                          🔄 Start
+                          Start
                         </button>
                       )}
                       {deal.status !== 'completed' && (
                         <button style={styles.btnComplete} onClick={() => updateStatus(deal.id, 'completed')}>
-                          ✅ Complete
+                          Complete
                         </button>
                       )}
                       {deal.status !== 'cancelled' && deal.status !== 'completed' && (
                         <button style={styles.btnCancel} onClick={() => updateStatus(deal.id, 'cancelled')}>
-                          ❌ Cancel
+                          Cancel
                         </button>
                       )}
                     </div>
                     <div style={styles.dealActions}>
                       <button style={styles.btnNote} onClick={() => { setNoteModal(deal); setNoteText(deal.notes || '') }}>
-                        📝 Note
+                        Note
                       </button>
                       <a style={styles.btnWa} href={waLink(deal)} target="_blank" rel="noopener">
-                        💬 WhatsApp
+                        WhatsApp
                       </a>
-                      <button style={styles.btnDel} onClick={() => deleteDeal(deal.id)}>🗑</button>
+                      <button style={styles.btnDel} onClick={() => deleteDeal(deal.id)}>Delete</button>
                     </div>
                   </div>
                 </div>
@@ -209,17 +206,16 @@ export default function DealsManager() {
         )}
       </div>
 
-      {/* Note Modal */}
       {noteModal && (
         <div style={styles.overlay} onClick={() => setNoteModal(null)}>
           <div style={styles.modal} onClick={e => e.stopPropagation()}>
-            <h2 style={styles.modalTitle}>📝 Admin Note</h2>
+            <h2 style={styles.modalTitle}>Admin Note</h2>
             <p style={styles.modalSub}>Deal: {noteModal.item}</p>
             <textarea
               style={styles.noteInput}
               value={noteText}
               onChange={e => setNoteText(e.target.value)}
-              placeholder="Add internal notes about this deal…"
+              placeholder="Add internal notes about this deal..."
               rows={5}
               autoFocus
             />
@@ -231,11 +227,10 @@ export default function DealsManager() {
         </div>
       )}
 
-      {/* Create Deal Modal */}
       {createModal && (
         <div style={styles.overlay} onClick={() => setCreateModal(false)}>
           <div style={styles.modal} onClick={e => e.stopPropagation()}>
-            <h2 style={styles.modalTitle}>🤝 New Deal</h2>
+            <h2 style={styles.modalTitle}>New Deal</h2>
             <div style={styles.createForm}>
               {[
                 { key: 'buyerName', label: "Buyer's Name", placeholder: 'Ahmed K' },
@@ -259,7 +254,7 @@ export default function DealsManager() {
                   style={{ ...styles.formInput, minHeight: '80px', resize: 'vertical' }}
                   value={newDeal.notes}
                   onChange={e => setNewDeal(d => ({ ...d, notes: e.target.value }))}
-                  placeholder="Optional notes…"
+                  placeholder="Optional notes..."
                 />
               </div>
             </div>
@@ -319,7 +314,7 @@ const styles = {
   partyName: { fontFamily: "'Rajdhani', sans-serif", fontSize: '1rem', fontWeight: 600, color: C.text },
   arrow: { color: C.muted, fontSize: '1.2rem' },
   noteBox: {
-    background: 'rgba(0,229,255,0.06)', border: `1px solid rgba(0,229,255,0.15)`,
+    background: 'rgba(0,229,255,0.06)', border: '1px solid rgba(0,229,255,0.15)',
     borderRadius: '6px', padding: '8px 14px', fontSize: '0.85rem', color: C.muted,
   },
   dealFooter: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' },

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import {
   collection, getDocs, query, where, Timestamp
 } from 'firebase/firestore'
-import { db } from '../firebase'
+import { db } from '../../firebase'
 import AdminLayout from '../components/AdminLayout'
 
 export default function AdminDashboard() {
@@ -55,7 +55,6 @@ export default function AdminDashboard() {
       })
     } catch (e) {
       console.error('Stats error:', e)
-      // Demo fallback
       setStats({
         totalPosts: 24, sellPosts: 16, needPosts: 8,
         totalUsers: 47, bannedUsers: 2,
@@ -68,14 +67,14 @@ export default function AdminDashboard() {
   }
 
   const statCards = [
-    { label: 'Total Posts', value: stats.totalPosts, sub: `+${stats.postsToday} today`, color: '#00e5ff', icon: '📋' },
-    { label: 'Selling', value: stats.sellPosts, sub: 'Active sell ads', color: '#00ff88', icon: '💰' },
-    { label: 'Need Posts', value: stats.needPosts, sub: 'Looking to buy', color: '#ff7b00', icon: '🛒' },
-    { label: 'Total Users', value: stats.totalUsers, sub: `${stats.bannedUsers} banned`, color: '#a78bfa', icon: '👥' },
-    { label: 'Deals', value: stats.totalDeals, sub: `${stats.pendingDeals} pending`, color: '#ffd700', icon: '🤝' },
-    { label: 'Completed', value: stats.completedDeals, sub: `+${stats.dealsToday} today`, color: '#00ff88', icon: '✅' },
-    { label: 'Reports', value: stats.pendingReports, sub: 'Need review', color: '#ff4444', icon: '🚩' },
-    { label: 'Pinned Ads', value: stats.activePins, sub: 'Currently active', color: '#ffd700', icon: '📌' },
+    { label: 'Total Posts', value: stats.totalPosts, sub: `+${stats.postsToday} today`, color: '#00e5ff', icon: 'ðŸ“‹' },
+    { label: 'Selling', value: stats.sellPosts, sub: 'Active sell ads', color: '#00ff88', icon: 'ðŸ’°' },
+    { label: 'Need Posts', value: stats.needPosts, sub: 'Looking to buy', color: '#ff7b00', icon: 'ðŸ›’' },
+    { label: 'Total Users', value: stats.totalUsers, sub: `${stats.bannedUsers} banned`, color: '#a78bfa', icon: 'ðŸ‘¥' },
+    { label: 'Deals', value: stats.totalDeals, sub: `${stats.pendingDeals} pending`, color: '#ffd700', icon: 'ðŸ¤' },
+    { label: 'Completed', value: stats.completedDeals, sub: `+${stats.dealsToday} today`, color: '#00ff88', icon: 'âœ…' },
+    { label: 'Reports', value: stats.pendingReports, sub: 'Need review', color: '#ff4444', icon: 'ðŸš©' },
+    { label: 'Pinned Ads', value: stats.activePins, sub: 'Currently active', color: '#ffd700', icon: 'ðŸ“Œ' },
   ]
 
   return (
@@ -91,7 +90,7 @@ export default function AdminDashboard() {
             <div style={styles.dots}>
               {[0,1,2].map(i => <div key={i} style={{ ...styles.dot, animationDelay: i*0.15+'s' }} />)}
             </div>
-            <span>Loading stats…</span>
+            <span>Loading statsâ€¦</span>
           </div>
         ) : (
           <>
@@ -115,10 +114,10 @@ export default function AdminDashboard() {
               <h2 style={styles.sectionTitle}>Quick Actions</h2>
               <div style={styles.actionGrid}>
                 {[
-                  { label: 'Review Reports', icon: '🚩', color: '#ff4444', count: stats.pendingReports, href: '/admin/reports' },
-                  { label: 'Pending Deals', icon: '🤝', color: '#ffd700', count: stats.pendingDeals, href: '/admin/deals' },
-                  { label: 'Manage Posts', icon: '📋', color: '#00e5ff', count: stats.totalPosts, href: '/admin/posts' },
-                  { label: 'Pin an Ad', icon: '📌', color: '#a78bfa', count: stats.activePins, href: '/admin/pinned' },
+                  { label: 'Review Reports', icon: 'ðŸš©', color: '#ff4444', count: stats.pendingReports, href: '/admin/reports' },
+                  { label: 'Pending Deals', icon: 'ðŸ¤', color: '#ffd700', count: stats.pendingDeals, href: '/admin/deals' },
+                  { label: 'Manage Posts', icon: 'ðŸ“‹', color: '#00e5ff', count: stats.totalPosts, href: '/admin/posts' },
+                  { label: 'Pin an Ad', icon: 'ðŸ“Œ', color: '#a78bfa', count: stats.activePins, href: '/admin/pinned' },
                 ].map((a, i) => (
                   <a key={i} href={a.href} style={{ ...styles.actionCard, textDecoration: 'none' }}>
                     <span style={{ fontSize: '1.8rem' }}>{a.icon}</span>

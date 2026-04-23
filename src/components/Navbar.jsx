@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
-import { useAdminAuth } from '../hooks/useAdminAuth'
+import { useAdminAuth } from '../admin/hooks/useAdminAuth'
 
 export function Navbar() {
   const { currentUser, logout } = useAuth()

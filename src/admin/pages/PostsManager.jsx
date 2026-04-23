@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import {
   collection, getDocs, deleteDoc, doc, updateDoc,
-  query, orderBy, addDoc, Timestamp, getDoc
+  query, orderBy, addDoc, Timestamp
 } from 'firebase/firestore'
 import { db } from '../../firebase'
 import AdminLayout from '../components/AdminLayout'
@@ -13,7 +13,7 @@ export default function PostsManager() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
-  const [pinModal, setPinModal] = useState(null) // post to pin
+  const [pinModal, setPinModal] = useState(null)
   const [pinHours, setPinHours] = useState(1)
   const [pinning, setPinning] = useState(false)
   const [actionMsg, setActionMsg] = useState('')
@@ -26,12 +26,10 @@ export default function PostsManager() {
       const q = query(collection(db, 'listings'), orderBy('timestamp', 'desc'))
       const snap = await getDocs(q)
       const data = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-      // Check which are pinned
       const pinsSnap = await getDocs(collection(db, 'pinnedPosts'))
       const pinnedIds = new Set(pinsSnap.docs.filter(d => d.data().expiresAt?.toMillis() > Date.now()).map(d => d.data().postId))
       setPosts(data.map(p => ({ ...p, isPinned: pinnedIds.has(p.id) })))
     } catch {
-      // Demo data
       setPosts([
         { id: '1', type: 'SELL', category: 'POP', title: '32K POP Available', price: '500', description: 'Fast delivery, bulk available.', user_id: 'u1', timestamp: null, hidden: false, isPinned: false },
         { id: '2', type: 'NEED', category: 'UC', title: 'Need 600 UC', price: '1200', description: 'Looking for reliable seller.', user_id: 'u2', timestamp: null, hidden: false, isPinned: true },
@@ -117,15 +115,14 @@ export default function PostsManager() {
 
         {actionMsg && <div style={styles.toast}>{actionMsg}</div>}
 
-        {/* Filters */}
         <div style={styles.toolbar}>
           <div style={styles.filters}>
             {[
               { key: 'all', label: 'All' },
-              { key: 'sell', label: '💰 Selling' },
-              { key: 'need', label: '🛒 Need' },
-              { key: 'hidden', label: '🙈 Hidden' },
-              { key: 'pinned', label: '📌 Pinned' },
+              { key: 'sell', label: 'Selling' },
+              { key: 'need', label: 'Need' },
+              { key: 'hidden', label: 'Hidden' },
+              { key: 'pinned', label: 'Pinned' },
             ].map(f => (
               <button key={f.key}
                 style={{ ...styles.filterBtn, ...(filter === f.key ? styles.filterBtnActive : {}) }}
@@ -135,14 +132,14 @@ export default function PostsManager() {
           </div>
           <input
             style={styles.searchInput}
-            placeholder="🔍 Search posts…"
+            placeholder="Search posts..."
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
         </div>
 
         {loading ? (
-          <div style={styles.loader}>Loading posts…</div>
+          <div style={styles.loader}>Loading posts...</div>
         ) : filtered.length === 0 ? (
           <div style={styles.empty}>No posts found</div>
         ) : (
@@ -158,10 +155,10 @@ export default function PostsManager() {
             {filtered.map(post => (
               <div key={post.id} style={{ ...styles.tableRow, opacity: post.hidden ? 0.5 : 1 }}>
                 <div style={styles.postTitle}>
-                  {post.isPinned && <span style={styles.pinBadge}>📌</span>}
+                  {post.isPinned && <span style={styles.pinBadge}>PIN</span>}
                   <div>
                     <div style={styles.titleText}>{post.title || post.category + ' Listing'}</div>
-                    <div style={styles.descText}>{(post.description || '').substring(0, 60)}…</div>
+                    <div style={styles.descText}>{(post.description || '').substring(0, 60)}...</div>
                   </div>
                 </div>
                 <span style={{
@@ -175,19 +172,19 @@ export default function PostsManager() {
                 </span>
                 <span style={styles.price}>{post.price} PKR</span>
                 <span style={{ fontSize: '0.8rem', color: post.hidden ? '#ff4444' : '#00ff88' }}>
-                  {post.hidden ? '🙈 Hidden' : '👁 Visible'}
+                  {post.hidden ? 'Hidden' : 'Visible'}
                 </span>
                 <div style={styles.actions}>
                   <button style={styles.btnHide} onClick={() => toggleHide(post)} title={post.hidden ? 'Show' : 'Hide'}>
-                    {post.hidden ? '👁' : '🙈'}
+                    {post.hidden ? 'Show' : 'Hide'}
                   </button>
                   {!post.isPinned && (
                     <button style={styles.btnPin} onClick={() => setPinModal(post)} title="Pin this post">
-                      📌
+                      Pin
                     </button>
                   )}
                   <button style={styles.btnDelete} onClick={() => deletePost(post.id)} title="Delete">
-                    🗑
+                    Delete
                   </button>
                 </div>
               </div>
@@ -196,11 +193,10 @@ export default function PostsManager() {
         )}
       </div>
 
-      {/* Pin Modal */}
       {pinModal && (
         <div style={styles.modalOverlay} onClick={() => setPinModal(null)}>
           <div style={styles.modal} onClick={e => e.stopPropagation()}>
-            <h2 style={styles.modalTitle}>📌 Pin This Post</h2>
+            <h2 style={styles.modalTitle}>Pin This Post</h2>
             <p style={styles.modalSub}>"{pinModal.title || pinModal.category}"</p>
             <p style={{ color: '#5a7080', fontSize: '0.85rem', marginBottom: '20px' }}>
               Select how long to pin at the top of the marketplace:
@@ -225,7 +221,7 @@ export default function PostsManager() {
             <div style={styles.modalBtns}>
               <button style={styles.modalCancel} onClick={() => setPinModal(null)}>Cancel</button>
               <button style={styles.modalConfirm} onClick={pinPost} disabled={pinning}>
-                {pinning ? 'Pinning…' : '📌 Confirm Pin'}
+                {pinning ? 'Pinning...' : 'Confirm Pin'}
               </button>
             </div>
           </div>
@@ -280,7 +276,7 @@ const styles = {
     transition: 'border-color 0.2s',
   },
   postTitle: { display: 'flex', alignItems: 'center', gap: '8px' },
-  pinBadge: { fontSize: '1rem', flexShrink: 0 },
+  pinBadge: { fontSize: '0.8rem', flexShrink: 0, color: '#ffd700', fontWeight: 700 },
   titleText: { fontSize: '0.9rem', fontWeight: 600, color: C.text, marginBottom: '2px' },
   descText: { fontSize: '0.75rem', color: C.muted },
   typeBadge: {
@@ -293,20 +289,19 @@ const styles = {
   actions: { display: 'flex', gap: '6px' },
   btnHide: {
     padding: '6px 10px', borderRadius: '6px', border: `1px solid ${C.border}`,
-    background: 'transparent', cursor: 'pointer', fontSize: '0.9rem',
-    transition: 'background 0.2s',
+    background: 'transparent', cursor: 'pointer', fontSize: '0.8rem',
+    transition: 'background 0.2s', color: C.text,
   },
   btnPin: {
     padding: '6px 10px', borderRadius: '6px',
     border: '1px solid rgba(255,215,0,0.3)', background: 'rgba(255,215,0,0.08)',
-    cursor: 'pointer', fontSize: '0.9rem',
+    cursor: 'pointer', fontSize: '0.8rem', color: '#ffd700',
   },
   btnDelete: {
     padding: '6px 10px', borderRadius: '6px',
     border: '1px solid rgba(255,68,68,0.3)', background: 'rgba(255,68,68,0.08)',
-    cursor: 'pointer', fontSize: '0.9rem',
+    cursor: 'pointer', fontSize: '0.8rem', color: '#ff4444',
   },
-  // Modal
   modalOverlay: {
     position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',

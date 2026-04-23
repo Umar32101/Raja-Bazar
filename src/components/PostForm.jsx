@@ -4,9 +4,9 @@ import { useListings } from '../hooks/useListings'
 import { useNavigate } from 'react-router-dom'
 
 export function PostForm({ onSuccess }) {
-  const { currentUser } = useAuth()
+  const { currentUser, currentUserProfile, appSettings } = useAuth()
   const navigate = useNavigate()
-  const { addListing } = useListings()
+  const { addListing, listings } = useListings()
   const [loading, setLoading] = useState(false)
 
   const handleLoginClick = () => {
@@ -17,17 +17,24 @@ export function PostForm({ onSuccess }) {
     e.preventDefault()
     const form = e.target
 
-    // Get poster's phone from localStorage
-    const userProfile = localStorage.getItem(`user_${currentUser.uid}`)
-    let posterPhone = ''
-    if (userProfile) {
-      try {
-        const profile = JSON.parse(userProfile)
-        posterPhone = profile.phone || ''
-      } catch (err) {
-        console.error('Error parsing user profile:', err)
+    const postLimit = Number(currentUserProfile?.postLimit ?? appSettings?.defaultPostLimit ?? 3)
+    const userPostCount = listings.filter(item => item.user_id === currentUser.uid).length
+
+    if (currentUserProfile?.restricted) {
+      if (window.showToast) {
+        window.showToast(currentUserProfile.restrictionReason || 'Your posting access is currently restricted', 'error')
       }
+      return
     }
+
+    if (userPostCount >= postLimit) {
+      if (window.showToast) {
+        window.showToast(`Post limit reached (${postLimit}). Contact admin for an upgrade.`, 'error')
+      }
+      return
+    }
+
+    const posterPhone = currentUserProfile?.phone || ''
 
     if (!posterPhone) {
       if (window.showToast) {
@@ -88,6 +95,10 @@ export function PostForm({ onSuccess }) {
 
   return (
     <div className="form-card">
+      <div style={{ marginBottom: '14px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+        Active posts: {listings.filter(item => item.user_id === currentUser.uid).length} / {Number(currentUserProfile?.postLimit ?? appSettings?.defaultPostLimit ?? 3)}
+        {currentUserProfile?.isPremium ? ' · Premium user' : ''}
+      </div>
       <form onSubmit={handleSubmit} noValidate>
         <div className="form-grid">
           <div className="form-group">

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useListings } from '../hooks/useListings'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { extractNameFromEmail } from '../admin/utils/formatters'
 
 function timeAgo(ts) {
   if (!ts) return 'Recently posted'
@@ -48,15 +49,19 @@ export function ListingCard({ item, idx, isOwner }) {
     const notification = {
       buyerId: currentUser.uid,
       buyerEmail: currentUser.email,
+      buyerName: extractNameFromEmail(currentUser.email),
       sellerId: item.user_id,
       sellerEmail: item.poster_email,
+      sellerName: extractNameFromEmail(item.poster_email),
       sellerPhone: item.poster_phone,
       listingId: item.id,
       listingTitle: item.title,
+      listingType: item.type,
+      listingCategory: item.category,
       price: item.price,
       dealType: dealType, // 'direct' or 'admin'
-      timestamp: new Date().toISOString(),
-      status: 'initiated'
+      createdAt: new Date().toISOString(),
+      status: 'pending'
     }
     
     // Save to Firestore (PRIMARY)
@@ -65,7 +70,8 @@ export function ListingCard({ item, idx, isOwner }) {
         try {
           const docRef = await addDoc(collection(db, 'deal_notifications'), {
             ...notification,
-            timestamp: serverTimestamp()
+            timestamp: serverTimestamp(),
+            updatedAt: serverTimestamp(),
           })
           console.log('✅ Deal notification saved to Firestore:', docRef.id)
         } catch (err) {

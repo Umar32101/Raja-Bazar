@@ -14,6 +14,7 @@ import ReportsManager from './admin/pages/ReportsManager'
 import PostsManager from './admin/pages/PostsManager'
 import PinnedPostsManager from './admin/pages/PinnedPostsManager'
 import DealsManager from './admin/pages/DealsManager'
+import SettingsManager from './admin/pages/SettingsManager'
 import { Navbar } from './components/Navbar'
 import { Hero } from './components/Hero'
 import { Marketplace } from './components/Marketplace'
@@ -112,6 +113,14 @@ function AppContent() {
         element={
           <ProtectedAdminRoute>
             <DealsManager />
+          </ProtectedAdminRoute>
+        }
+      />
+      <Route
+        path="/admin/settings"
+        element={
+          <ProtectedAdminRoute>
+            <SettingsManager />
           </ProtectedAdminRoute>
         }
       />

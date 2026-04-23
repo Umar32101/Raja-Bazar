@@ -9,6 +9,7 @@ const navItems = [
   { to: '/admin/posts', label: 'Posts' },
   { to: '/admin/pinned', label: 'Pinned Ads' },
   { to: '/admin/deals', label: 'Deals' },
+  { to: '/admin/settings', label: 'Settings' },
 ]
 
 export default function AdminLayout({ children }) {

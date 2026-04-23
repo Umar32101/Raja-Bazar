@@ -20,9 +20,9 @@ export function AdminAuthProvider({ children }) {
       if (user) {
         try {
           const snap = await getDoc(doc(db, 'admins', user.uid))
-          if (snap.exists() && snap.data().isadmin === true) {
+          if (snap.exists()) {
             setAdminUser(user)
-            setAdminData({ uid: user.uid, ...snap.data() })
+            setAdminData({ uid: user.uid, ...snap.data(), isadmin: true })
           } else {
             setAdminUser(null)
             setAdminData(null)
@@ -45,7 +45,7 @@ export function AdminAuthProvider({ children }) {
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password)
       const snap = await getDoc(doc(db, 'admins', cred.user.uid))
-      if (!snap.exists() || snap.data().isadmin !== true) {
+      if (!snap.exists()) {
         await signOut(auth)
         throw new Error('Access denied. This account is not an admin.')
       }

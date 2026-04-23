@@ -5,7 +5,7 @@ import {
   onAuthStateChanged
 } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
-import { auth, db } from '../../firebase'
+import { auth, db } from '../firebase'
 
 export const AdminAuthContext = createContext(null)
 
@@ -21,7 +21,7 @@ export function AdminAuthProvider({ children }) {
         // Check if this user is an admin in Firestore
         try {
           const snap = await getDoc(doc(db, 'admins', user.uid))
-          if (snap.exists() && snap.data().isAdmin) {
+          if (snap.exists() && snap.data().isadmin === true) {
             setAdminUser(user)
             setAdminData({ uid: user.uid, ...snap.data() })
           } else {
@@ -46,7 +46,7 @@ export function AdminAuthProvider({ children }) {
     try {
       const cred = await signInWithEmailAndPassword(auth, email, password)
       const snap = await getDoc(doc(db, 'admins', cred.user.uid))
-      if (!snap.exists() || !snap.data().isAdmin) {
+      if (!snap.exists() || snap.data().isadmin !== true) {
         await signOut(auth)
         throw new Error('Access denied. This account is not an admin.')
       }

@@ -1,17 +1,18 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useAdminAuth } from '../hooks/useAdminAuth'
 
 export function Navbar() {
   const { currentUser, logout } = useAuth()
+  const { adminData } = useAdminAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
-  const [logoutOnClose, setLogoutOnClose] = useState(() => 
+  const [logoutOnClose, setLogoutOnClose] = useState(() =>
     localStorage.getItem('logout_on_close') === 'true'
   )
   const navigate = useNavigate()
 
-  // Extract username from email
   const getUserName = () => {
     if (!currentUser?.email) return ''
     return currentUser.email.split('@')[0]
@@ -30,13 +31,17 @@ export function Navbar() {
     navigate('/login')
   }
 
+  const handleAdminDashboard = () => {
+    navigate('/admin/dashboard')
+  }
+
   const handleLogoutOnCloseToggle = () => {
     const newValue = !logoutOnClose
     setLogoutOnClose(newValue)
     localStorage.setItem('logout_on_close', newValue.toString())
     if (window.showToast) {
       window.showToast(
-        newValue ? '✓ You will be logged out when you close this tab' : '✓ You will stay logged in',
+        newValue ? 'You will be logged out when you close this tab' : 'You will stay logged in',
         'success'
       )
     }
@@ -47,7 +52,7 @@ export function Navbar() {
   return (
     <nav>
       <a href="#hero" className="logo">
-        ⚔ Raja <span>Bazar</span>
+        Raja <span>Bazar</span>
       </a>
       <ul className="nav-links">
         <li><a href="#hero">Home</a></li>
@@ -58,7 +63,7 @@ export function Navbar() {
 
       {currentUser && (
         <div className="user-section" style={{ position: 'relative' }}>
-          <span 
+          <span
             className="user-greeting"
             onClick={() => setShowSettings(!showSettings)}
             style={{ cursor: 'pointer' }}
@@ -66,7 +71,7 @@ export function Navbar() {
             Welcome, <span className="username">{getUserName()}</span>
             {showSettings ? ' ▼' : ' ▶'}
           </span>
-          
+
           {showSettings && (
             <div style={{
               position: 'absolute',
@@ -88,47 +93,54 @@ export function Navbar() {
                 paddingBottom: '8px',
                 borderBottom: '1px solid var(--border)'
               }}>
-                📍 ACCOUNT SETTINGS
+                ACCOUNT SETTINGS
               </div>
-              
-              <label style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                cursor: 'pointer',
-                padding: '8px 4px',
-                borderRadius: '4px',
-                transition: 'background 0.2s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,229,255,0.05)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  cursor: 'pointer',
+                  padding: '8px 4px',
+                  borderRadius: '4px',
+                  transition: 'background 0.2s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,229,255,0.05)' }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
               >
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={logoutOnClose}
                   onChange={handleLogoutOnCloseToggle}
                   style={{ cursor: 'pointer' }}
                 />
                 <span style={{ fontSize: '13px' }}>Logout when tab closes</span>
               </label>
-              
-              <div style={{
-                fontSize: '11px',
-                color: 'var(--text-muted)',
-                marginTop: '8px',
-                paddingTop: '8px',
-                borderTop: '1px solid var(--border)'
-              }}>
-                💾 All your data is stored on YOUR PC only<br/>
-                🔒 Not visible to other users
-              </div>
+
+              {adminData?.isadmin === true && (
+                <button
+                  type="button"
+                  className="auth-btn"
+                  onClick={handleAdminDashboard}
+                  style={{ width: '100%', marginTop: '10px' }}
+                >
+                  Admin Dashboard
+                </button>
+              )}
             </div>
           )}
         </div>
       )}
 
+      {adminData?.isadmin === true && (
+        <button className="auth-btn auth-btn-desktop" onClick={handleAdminDashboard}>
+          Admin Dashboard
+        </button>
+      )}
+
       <button className="auth-btn auth-btn-desktop" onClick={currentUser ? handleLogout : handleLogin}>
-        {currentUser ? '🚪 Logout' : 'Login'}
+        {currentUser ? 'Logout' : 'Login'}
       </button>
 
       <button
@@ -150,7 +162,20 @@ export function Navbar() {
               <div className="mobile-user-info">
                 Welcome, <span className="username">{getUserName()}</span>
               </div>
-              
+
+              {adminData?.isadmin === true && (
+                <button
+                  className="auth-btn"
+                  onClick={() => {
+                    handleAdminDashboard()
+                    closeMobileMenu()
+                  }}
+                  style={{ marginBottom: '8px', width: '100%' }}
+                >
+                  Admin Dashboard
+                </button>
+              )}
+
               <label style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -162,8 +187,8 @@ export function Navbar() {
                 background: 'rgba(0,229,255,0.05)',
                 fontSize: '13px'
               }}>
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={logoutOnClose}
                   onChange={handleLogoutOnCloseToggle}
                   style={{ cursor: 'pointer' }}
@@ -180,7 +205,7 @@ export function Navbar() {
             }}
             style={{ marginTop: '8px', width: '100%' }}
           >
-            {currentUser ? '🚪 Logout' : 'Login'}
+            {currentUser ? 'Logout' : 'Login'}
           </button>
         </div>
       )}

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import {
-  collection, getDocs, query, orderBy, where, Timestamp
+  collection, getDocs, query, where, Timestamp
 } from 'firebase/firestore'
-import { db } from '../../firebase'
+import { db } from '../firebase'
 import AdminLayout from '../components/AdminLayout'
 
 export default function AdminDashboard() {
@@ -13,8 +13,6 @@ export default function AdminDashboard() {
     pendingReports: 0, activePins: 0,
     postsToday: 0, dealsToday: 0,
   })
-  const [recentPosts, setRecentPosts] = useState([])
-  const [recentDeals, setRecentDeals] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -55,9 +53,6 @@ export default function AdminDashboard() {
         postsToday: posts.filter(p => p.timestamp && p.timestamp.toMillis && p.timestamp.toMillis() > today.toMillis()).length,
         dealsToday: deals.filter(d => d.createdAt && d.createdAt.toMillis && d.createdAt.toMillis() > today.toMillis()).length,
       })
-
-      setRecentPosts(posts.slice(0, 5))
-      setRecentDeals(deals.slice(0, 5))
     } catch (e) {
       console.error('Stats error:', e)
       // Demo fallback

@@ -1,10 +1,14 @@
 import React, { useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import { AdminAuthProvider } from './context/AdminAuthContext'
 import { ListingsProvider } from './context/ListingsContext'
 import { useAuth } from './hooks/useAuth'
+import { useAdminAuth } from './hooks/useAdminAuth'
 import { LoginPage } from './pages/LoginPage'
 import { SignupPage } from './pages/SignupPage'
+import AdminLoginPage from './pages/AdminLoginPage'
+import AdminDashboard from './pages/AdminDashboard'
 import { Navbar } from './components/Navbar'
 import { Hero } from './components/Hero'
 import { Marketplace } from './components/Marketplace'
@@ -16,25 +20,56 @@ import { Footer } from './components/Footer'
 import { Toast } from './components/Toast'
 import { SessionIndicator } from './components/SessionIndicator'
 
+function ProtectedAdminRoute({ children }) {
+  const { loading: authLoading, currentUser } = useAuth()
+  const { loading: adminLoading, adminData } = useAdminAuth()
+
+  if (authLoading || adminLoading) {
+    return <div className="loading-spinner">Loading...</div>
+  }
+
+  if (!currentUser) {
+    return <Navigate to="/admin/login" replace />
+  }
+
+  if (adminData?.isadmin !== true) {
+    return <Navigate to="/" replace />
+  }
+
+  return children
+}
+
 function AppContent() {
   const [toast, setToast] = useState({ message: '', type: 'success', visible: false })
   const { currentUser, loading } = useAuth()
+  const { adminData, loading: adminLoading } = useAdminAuth()
 
   React.useEffect(() => {
-    // Make toast function globally available for error handling
     window.showToast = (message, type = 'success') => {
       setToast({ message, type, visible: true })
     }
   }, [])
 
-  if (loading) {
+  if (loading || adminLoading) {
     return <div className="loading-spinner">Loading...</div>
   }
 
   return (
     <Routes>
-      <Route path="/login" element={currentUser ? <Navigate to="/" /> : <LoginPage />} />
-      <Route path="/signup" element={currentUser ? <Navigate to="/" /> : <SignupPage />} />
+      <Route path="/login" element={currentUser ? <Navigate to="/" replace /> : <LoginPage />} />
+      <Route path="/signup" element={currentUser ? <Navigate to="/" replace /> : <SignupPage />} />
+      <Route
+        path="/admin/login"
+        element={adminData?.isadmin === true ? <Navigate to="/admin/dashboard" replace /> : <AdminLoginPage />}
+      />
+      <Route
+        path="/admin/dashboard"
+        element={
+          <ProtectedAdminRoute>
+            <AdminDashboard />
+          </ProtectedAdminRoute>
+        }
+      />
       <Route
         path="/*"
         element={
@@ -64,9 +99,11 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <ListingsProvider>
-        <AppContent />
-      </ListingsProvider>
+      <AdminAuthProvider>
+        <ListingsProvider>
+          <AppContent />
+        </ListingsProvider>
+      </AdminAuthProvider>
     </AuthProvider>
   )
 }

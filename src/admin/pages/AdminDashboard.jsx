@@ -3,8 +3,10 @@ import { collection, getDocs, onSnapshot, query, where, Timestamp } from 'fireba
 import { db } from '../../firebase'
 import AdminLayout from '../components/AdminLayout'
 import { formatDateTime } from '../utils/formatters'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 export default function AdminDashboard() {
+  const isMobile = useIsMobile()
   const [stats, setStats] = useState({
     totalPosts: 0,
     activePosts: 0,
@@ -90,8 +92,8 @@ export default function AdminDashboard() {
     <AdminLayout>
       <div style={styles.page}>
         <div style={styles.pageHeader}>
-          <h1 style={styles.pageTitle}>Admin Overview</h1>
-          <p style={styles.pageSub}>Live operations view for users, deals, posts, reports, and admin handover.</p>
+          <h1 style={{ ...styles.pageTitle, fontSize: isMobile ? '1.5rem' : '2rem' }}>Admin Overview</h1>
+          <p style={{ ...styles.pageSub, fontSize: isMobile ? '0.8rem' : '1rem' }}>Live operations view for users, deals, posts, reports, and admin handover.</p>
         </div>
 
         {loading ? (
@@ -101,9 +103,9 @@ export default function AdminDashboard() {
             <div style={styles.statsGrid}>
               {statCards.map((card) => (
                 <div key={card.label} style={styles.statCard}>
-                  <div style={{ ...styles.statValue, color: card.color }}>{card.value}</div>
-                  <div style={styles.statLabel}>{card.label}</div>
-                  <div style={styles.statSub}>{card.sub}</div>
+                  <div style={{ ...styles.statValue, color: card.color, fontSize: isMobile ? '1.5rem' : '2rem' }}>{card.value}</div>
+                  <div style={{ ...styles.statLabel, fontSize: isMobile ? '0.8rem' : '1rem' }}>{card.label}</div>
+                  <div style={{ ...styles.statSub, fontSize: isMobile ? '0.7rem' : '0.82rem' }}>{card.sub}</div>
                 </div>
               ))}
             </div>
@@ -115,8 +117,8 @@ export default function AdminDashboard() {
                   {admins.length === 0 ? (
                     <div style={styles.empty}>No admin records found</div>
                   ) : admins.map(admin => (
-                    <div key={admin.id} style={styles.adminRow}>
-                      <div>
+                    <div key={admin.id} style={{ ...styles.adminRow, flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center' }}>
+                      <div style={{ marginBottom: isMobile ? '4px' : '0' }}>
                         <div style={styles.adminName}>{admin.name || admin.email || admin.id}</div>
                         <div style={styles.adminMeta}>{admin.role || 'admin'} · {admin.email || '-'}</div>
                       </div>
@@ -163,17 +165,17 @@ export default function AdminDashboard() {
 const C = { card: '#111820', border: '#1e2d3d', text: '#e0e8f0', muted: '#5a7080' }
 
 const styles = {
-  page: { maxWidth: '1180px' },
+  page: { maxWidth: '1180px', margin: '0 auto' },
   pageHeader: { marginBottom: '28px' },
-  pageTitle: { fontFamily: "'Rajdhani', sans-serif", fontSize: '2rem', fontWeight: 700, color: C.text, marginBottom: '6px' },
+  pageTitle: { fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, color: C.text, marginBottom: '6px' },
   pageSub: { color: C.muted },
   loader: { color: C.muted, padding: '40px 0', textAlign: 'center' },
-  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px', marginBottom: '26px' },
-  statCard: { background: C.card, border: `1px solid ${C.border}`, borderRadius: '12px', padding: '18px' },
-  statValue: { fontFamily: "'Rajdhani', sans-serif", fontSize: '2rem', fontWeight: 700, lineHeight: 1 },
+  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px', marginBottom: '26px' },
+  statCard: { background: C.card, border: `1px solid ${C.border}`, borderRadius: '12px', padding: '18px', textAlign: 'center' },
+  statValue: { fontFamily: "'Rajdhani', sans-serif", fontWeight: 700, lineHeight: 1 },
   statLabel: { color: C.text, marginTop: '10px', fontWeight: 600 },
-  statSub: { color: C.muted, marginTop: '4px', fontSize: '0.82rem' },
-  sectionGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' },
+  statSub: { color: C.muted, marginTop: '4px' },
+  sectionGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' },
   panel: { background: C.card, border: `1px solid ${C.border}`, borderRadius: '12px', padding: '20px' },
   sectionTitle: { fontFamily: "'Rajdhani', sans-serif", fontSize: '1.25rem', fontWeight: 700, marginBottom: '16px' },
   adminList: { display: 'grid', gap: '12px' },

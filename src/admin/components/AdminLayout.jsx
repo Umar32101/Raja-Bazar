@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAdminAuth } from '../hooks/useAdminAuth'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 const navItems = [
   { to: '/admin/dashboard', label: 'Dashboard' },
@@ -14,17 +15,38 @@ const navItems = [
 
 export default function AdminLayout({ children }) {
   const { adminData, adminLogout } = useAdminAuth()
+  const isMobile = useIsMobile()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
 
   const handleLogout = async () => {
     await adminLogout()
-    navigate('/admin/login')
+    navigate('/')
   }
+
+  const closeSidebar = () => setSidebarOpen(false)
 
   return (
     <div style={styles.shell}>
-      <aside style={styles.sidebar}>
+      {isMobile && (
+        <div style={styles.mobileHeader}>
+          <button style={styles.menuBtn} onClick={() => setSidebarOpen(true)}>
+            ☰
+          </button>
+          <div style={styles.mobileBrand}>Raja Bazar Admin</div>
+        </div>
+      )}
+
+      {isMobile && sidebarOpen && <div style={styles.overlay} onClick={closeSidebar} />}
+
+      <aside style={{
+        ...styles.sidebar,
+        ...(isMobile && {
+          ...styles.sidebarMobile,
+          transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)'
+        })
+      }}>
         <div style={styles.brand}>
           <div style={styles.logo}>RB</div>
           <div>
@@ -40,6 +62,7 @@ export default function AdminLayout({ children }) {
               <Link
                 key={item.to}
                 to={item.to}
+                onClick={isMobile ? closeSidebar : undefined}
                 style={{
                   ...styles.navLink,
                   ...(active ? styles.navLinkActive : {}),
@@ -62,7 +85,10 @@ export default function AdminLayout({ children }) {
         </div>
       </aside>
 
-      <main style={styles.main}>{children}</main>
+      <main style={{
+        ...styles.main,
+        ...(isMobile && { padding: '16px', marginTop: '60px' })
+      }}>{children}</main>
     </div>
   )
 }
@@ -84,6 +110,45 @@ const styles = {
     color: C.text,
     display: 'grid',
     gridTemplateColumns: '280px 1fr',
+    position: 'relative',
+  },
+  mobileHeader: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '60px',
+    background: C.surface,
+    borderBottom: `1px solid ${C.border}`,
+    display: 'flex',
+    alignItems: 'center',
+    padding: '0 16px',
+    zIndex: 100,
+    gap: '12px',
+  },
+  menuBtn: {
+    background: 'transparent',
+    border: 'none',
+    color: C.accent,
+    fontSize: '1.5rem',
+    cursor: 'pointer',
+    width: '40px',
+    height: '40px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mobileBrand: {
+    fontFamily: "'Rajdhani', sans-serif",
+    fontWeight: 700,
+    fontSize: '1.1rem',
+    color: C.text,
+  },
+  overlay: {
+    position: 'fixed',
+    inset: 0,
+    background: 'rgba(0,0,0,0.7)',
+    zIndex: 150,
   },
   sidebar: {
     borderRight: `1px solid ${C.border}`,
@@ -92,6 +157,16 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '24px',
+    zIndex: 200,
+    transition: 'transform 0.3s ease',
+  },
+  sidebarMobile: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    width: '280px',
+    borderRight: `1px solid ${C.border}`,
   },
   brand: {
     display: 'flex',

@@ -23,7 +23,7 @@ function escapeHtml(text) {
 
 export function ListingCard({ item, idx, isOwner }) {
   const navigate = useNavigate()
-  const { ADMIN_WHATSAPP, currentUser, db } = useAuth()
+  const { ADMIN_WHATSAPP, currentUser, currentUserProfile, db } = useAuth()
   const { deleteListing } = useListings()
 
   const handleDelete = async () => {
@@ -50,6 +50,7 @@ export function ListingCard({ item, idx, isOwner }) {
       buyerId: currentUser.uid,
       buyerEmail: currentUser.email,
       buyerName: extractNameFromEmail(currentUser.email),
+      buyerPhone: currentUserProfile?.phone || '',
       sellerId: item.user_id,
       sellerEmail: item.poster_email,
       sellerName: extractNameFromEmail(item.poster_email),

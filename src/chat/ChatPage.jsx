@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase';
 import { useChat } from './useChat';
 import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
-import '../styles/global.css';
+import '../styles/globals.css';
 
 const ChatPage = () => {
   const { chatId } = useParams();

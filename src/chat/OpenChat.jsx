@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { auth } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 import { useChat } from './useChat';
-import '../styles/global.css';
+import '../styles/globals.css';
 
 const OpenChat = () => {
   const [messages, setMessages] = useState([]);

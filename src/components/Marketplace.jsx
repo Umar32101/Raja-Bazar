@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react'
 import { useListings } from '../hooks/useListings'
 import { useAuth } from '../hooks/useAuth'
 import { ListingCard } from './ListingCard'
+import OpenChat from '../chat/OpenChat'
 
 export function Marketplace() {
   const { listings, loading } = useListings()
@@ -103,6 +104,7 @@ export function Marketplace() {
             filtered.map((item, idx) => <ListingCard key={item.id} item={item} idx={idx} isOwner={currentUser?.uid === item.user_id} />)
           )}
         </div>
+        <OpenChat />
       </div>
     </section>
   )

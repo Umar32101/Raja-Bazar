@@ -14,7 +14,8 @@ import { Trust } from './components/Trust'
 import { CTA } from './components/CTA'
 import { Footer } from './components/Footer'
 import { Toast } from './components/Toast'
-import { SessionIndicator } from './components/SessionIndicator'
+import { NotificationProvider } from './chat/NotificationContext'
+import ChatPage from './chat/ChatPage'
 
 function AppContent() {
   const [toast, setToast] = useState({ message: '', type: 'success', visible: false })
@@ -35,6 +36,7 @@ function AppContent() {
     <Routes>
       <Route path="/login" element={currentUser ? <Navigate to="/" /> : <LoginPage />} />
       <Route path="/signup" element={currentUser ? <Navigate to="/" /> : <SignupPage />} />
+      <Route path="/chat/:chatId" element={<ChatPage />} />
       <Route
         path="/*"
         element={
@@ -65,7 +67,9 @@ export default function App() {
   return (
     <AuthProvider>
       <ListingsProvider>
-        <AppContent />
+        <NotificationProvider>
+          <AppContent />
+        </NotificationProvider>
       </ListingsProvider>
     </AuthProvider>
   )

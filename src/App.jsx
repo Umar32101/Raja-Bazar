@@ -14,6 +14,7 @@ import { Trust } from './components/Trust'
 import { CTA } from './components/CTA'
 import { Footer } from './components/Footer'
 import { Toast } from './components/Toast'
+import { SessionIndicator } from './components/SessionIndicator'
 import { NotificationProvider } from './chat/NotificationContext'
 import ChatPage from './chat/ChatPage'
 

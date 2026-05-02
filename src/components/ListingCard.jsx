@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { useListings } from '../hooks/useListings'
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore'
+import { useChat } from '../chat/useChat'
 
 function timeAgo(ts) {
   if (!ts) return 'Recently posted'
@@ -32,6 +33,19 @@ export function ListingCard({ item, idx, isOwner }) {
     } catch (e) {
       console.error('Delete error:', e)
     }
+  }
+
+  const handleDirectDeal = () => {
+    if (!currentUser) {
+      if (window.showToast) {
+        window.showToast('Please sign in to make a deal', 'error')
+      }
+      navigate('/login')
+      return
+    }
+
+    const chatId = getChatId(currentUser.uid, item.user_id)
+    navigate(`/chat/${chatId}`)
   }
 
   const handleDealClick = (dealType) => {
@@ -125,15 +139,12 @@ export function ListingCard({ item, idx, isOwner }) {
       <div className="card-btns">
         {currentUser ? (
           <>
-            <a
+            <button
               className="btn-wa"
-              href={`https://wa.me/${posterPhone}?text=${waMsg}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => handleDealClick('direct')}
+              onClick={handleDirectDeal}
             >
               <i className="fab fa-whatsapp"></i> Direct Deal
-            </a>
+            </button>
             <a
               className="btn-admin"
               href={`https://wa.me/${ADMIN_WHATSAPP}?text=${adminMsg}`}
@@ -148,7 +159,7 @@ export function ListingCard({ item, idx, isOwner }) {
           <>
             <button
               className="btn-wa"
-              onClick={() => handleDealClick('direct')}
+              onClick={handleDirectDeal}
               style={{ textDecoration: 'none', display: 'inline-block', cursor: 'pointer' }}
             >
               <i className="fab fa-whatsapp"></i> Direct Deal
